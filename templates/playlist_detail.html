@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+  <h2 class="mb-3">{{ playlist.name }}</h2>
+  <div class="row">
+    {% for movie in movies %}
+      <div class="col-md-3 mb-3">
+        <!-- ✅ Fixed card classes for hover glow -->
+        <div class="card h-100 shadow-lg movie-card">
+          <a href="{% url 'movie_detail' movie.id %}" class="title-link">
+            <img src="{{ movie.poster.url }}" class="card-img-top" alt="{{ movie.title }}">
+            <div class="card-body text-center">
+              <h5 class="card-title">{{ movie.title }}</h5>
+            </div>
+          </a>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

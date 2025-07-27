@@ -1,0 +1,34 @@
+<div class="row">
+  {% for movie in movies %}
+    <div class="col-md-4 mb-4">
+      <div class="card h-100 hover-card bg-dark text-light">
+
+        <!-- 🎬 Movie Poster wrapped in link -->
+        <a href="{% url 'movie_detail' movie.pk %}">
+          <img src="{{ movie.poster.url }}" class="card-img-top" style="max-height: 300px;" alt="{{ movie.title }}">
+        </a>
+
+        <div class="card-body text-center">
+          <!-- 🎞 Movie Title -->
+          <h5 class="card-title mt-2">{{ movie.title }}</h5>
+
+          <!-- 🎵 Playlist Info -->
+          {% if movie.playlist %}
+            <p class="text-muted mb-1">
+              🎵 Playlist: <strong>{{ movie.playlist.name }}</strong>
+            </p>
+          {% endif %}
+
+          <!-- 🔘 Buttons: Details + Download -->
+          <div class="d-flex justify-content-center gap-2 mt-3">
+            <a href="{% url 'movie_detail' movie.pk %}" class="btn btn-primary btn-sm">🎬 Details</a>
+            <a href="{% url 'download_movie' movie.pk %}" class="btn btn-success btn-sm">⬇️ Download</a>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  {% empty %}
+    <p class="text-light">No movies found.</p>
+  {% endfor %}
+</div>

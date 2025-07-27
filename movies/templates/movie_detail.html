@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-5 animate-fade text-center">
+  <div class="card p-4 shadow-lg bg-dark text-light animated-card">
+    
+    <!-- 🎬 Movie Title -->
+    <h2 class="mb-4">{{ movie.title }}</h2>
+
+    <!-- 🖼 Poster Image -->
+    <img src="{{ movie.poster.url }}" class="img-fluid rounded shadow" style="max-height: 400px;" alt="{{ movie.title }}">
+
+    <!-- 📝 Description -->
+    <p class="mt-3">{{ movie.description }}</p>
+
+    <!-- 🎞 Optional Video Preview -->
+    {% if movie.video %}
+      <video controls class="w-100 mt-4 rounded shadow">
+        <source src="{{ movie.video.url }}" type="video/mp4">
+        Your browser does not support the video tag.
+      </video>
+    {% endif %}
+
+    <!-- ⬇️ Download Button -->
+    <a href="{{ movie.download_link }}" class="btn btn-success mt-4" target="_blank">
+      ⬇️ Download Movie
+    </a>
+
+  </div>
+</div>
+
+<!-- 🎨 Animation CSS -->
+<style>
+  .animated-card {
+    animation: fadeInUp 0.6s ease-out;
+    transition: transform 0.3s ease;
+  }
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(40px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+</style>
+{% endblock %}

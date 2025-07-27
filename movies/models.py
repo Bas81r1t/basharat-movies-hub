@@ -1,16 +1,17 @@
 from django.db import models
 from django.utils import timezone
+from cloudinary.models import CloudinaryField  # ✅ Cloudinary import
 
 class Playlist(models.Model):
     name = models.CharField(max_length=100)
-    banner = models.ImageField(upload_to='playlist_banners/', blank=True, null=True)
+    banner = CloudinaryField('banner', blank=True, null=True)  # ✅ Cloudinary banner image
     def __str__(self):
         return self.name
 
 class Movie(models.Model):
     title = models.CharField(max_length=200)
     description = models.TextField()
-    poster = models.ImageField(upload_to='posters/')
+    poster = CloudinaryField('poster')  # ✅ Cloudinary poster image
     download_link = models.URLField()
     playlist = models.ForeignKey(Playlist, on_delete=models.SET_NULL, null=True, blank=True)
 

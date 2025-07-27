@@ -1,11 +1,13 @@
 import os
 from pathlib import Path
+from decouple import config
+
 
 # ✅ BASE DIR
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # ✅ SECRET + DEBUG
-SECRET_KEY = 'django-insecure--0#lkljw^@ia8n-szf$twpo2jvhcz=ri#nj6=ai3ofm$$7ed3b'
+SECRET_KEY = config('SECRET_KEY')
 DEBUG = True
 ALLOWED_HOSTS = []
 
@@ -21,7 +23,7 @@ INSTALLED_APPS = [
     # Custom apps
     'movies.apps.MoviesConfig',
 
-    # existing apps...
+    # SEO / Sitemap
     'django.contrib.sitemaps',
 
     # Cloudinary
@@ -83,23 +85,24 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
 
-# ✅ Static Files
+# ✅ Static Files (Required for Render deployment)
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
-# ✅ Media Files
+# ✅ Media Files (Backup local usage only)
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-# ✅ Default Primary Key Field
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-# ✅ Cloudinary Setup (🔑 Replace with your actual credentials)
+# ✅ Cloudinary Media Storage Setup
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
 CLOUDINARY_STORAGE = {
-    'CLOUD_NAME': 'your_cloud_name',     # 🔄 Replace this
-    'API_KEY': 'your_api_key',           # 🔄 Replace this
-    'API_SECRET': 'your_api_secret',     # 🔄 Replace this
+    'CLOUD_NAME': config('CLOUD_NAME'),
+    'API_KEY': config('API_KEY'),
+    'API_SECRET': config('API_SECRET')
 }
+
+
+# ✅ Default Primary Key Field
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

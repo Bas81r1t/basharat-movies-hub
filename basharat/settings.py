@@ -3,9 +3,9 @@ from pathlib import Path
 from dotenv import load_dotenv
 from decouple import config
 import cloudinary
-import dj_database_url  # ✅ For Render PostgreSQL
+import dj_database_url
 
-# ✅ BASE DIR
+# ✅ Base Directory
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # ✅ Load .env manually
@@ -40,7 +40,7 @@ INSTALLED_APPS = [
 # ✅ Middleware
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',  # ✅ WhiteNoise for static files
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -70,26 +70,16 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'basharat.wsgi.application'
 
-# ✅ Smart database setup (PostgreSQL for Render, SQLite for local)
-DATABASE_URL = os.environ.get('DATABASE_URL')
+# ✅ DATABASE (Always use external PostgreSQL for production)
+DATABASES = {
+    'default': dj_database_url.config(
+        default='postgresql://basharat_db_user:7EGzymVofOkSDG6NgeR6jU2fwDfB0uIo@dpg-d23qsgidbo4c7385piqg-a.oregon-postgres.render.com/basharat_db',
+        conn_max_age=600,
+        ssl_require=True
+    )
+}
 
-if DATABASE_URL:
-    DATABASES = {
-        'default': dj_database_url.config(
-            default=DATABASE_URL,
-            conn_max_age=600,
-            ssl_require=True
-        )
-    }
-else:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
-        }
-    }
-
-# ✅ Password Validation
+# ✅ Password Validators
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
     {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
@@ -113,7 +103,7 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-# ✅ Cloudinary Storage
+# ✅ Cloudinary Configuration
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
 CLOUDINARY_STORAGE = {
@@ -122,7 +112,6 @@ CLOUDINARY_STORAGE = {
     'API_SECRET': config('API_SECRET'),
 }
 
-# ✅ Runtime Cloudinary Config
 cloudinary.config(
     cloud_name=config('CLOUD_NAME'),
     api_key=config('API_KEY'),
@@ -130,5 +119,5 @@ cloudinary.config(
     secure=True
 )
 
-# ✅ Default Auto Field
+# ✅ Auto Field
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

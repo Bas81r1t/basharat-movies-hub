@@ -1,0 +1,122 @@
+/* 🔵 DARK MODE DEFAULT */
+body {
+  background: linear-gradient(135deg, #0f0f0f, #1a1a1a);
+  background-size: 400% 400%;
+  animation: gradientMove 15s ease infinite;
+  color: white;
+  transition: background-color 0.4s ease, color 0.4s ease;
+}
+
+@keyframes gradientMove {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* 🔁 LIGHT MODE STYLING */
+.light-mode {
+  background-color: #f8f9fa;
+  color: #212529;
+}
+
+.light-mode .navbar,
+.light-mode footer {
+  background-color: #e3e3e3 !important;
+  color: #000000 !important;
+}
+
+.light-mode .card {
+  background-color: #ffffff;
+  color: #000000;
+  border: 1px solid #ccc;
+}
+
+.light-mode .card-title,
+.light-mode .navbar .nav-link,
+.light-mode .navbar-brand,
+.light-mode h2,
+.light-mode h3 {
+  color: #000000 !important;
+}
+
+.light-mode .btn-outline-light {
+  border-color: #000000;
+  color: #000000;
+}
+
+.light-mode .form-control {
+  background-color: #ffffff;
+  color: #000000;
+  border: 1px solid #ccc;
+}
+
+.light-mode .form-control::placeholder {
+  color: #888888;
+}
+
+.light-mode .movie-title,
+.light-mode .movie-description {
+  color: #000000 !important;
+}
+
+/* 🎬 Final Card Styling — playlist + uploaded + search result */
+.card,
+.movie-card {
+  background-color: #222222;
+  color: white;
+  border-radius: 12px;
+  overflow: hidden;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  box-shadow: 0 0 8px rgba(0, 255, 255, 0.1); /* base glow */
+}
+
+.card-img-top {
+  object-fit: cover;
+  height: 300px;
+}
+
+.card:hover,
+.movie-card:hover {
+  transform: translateY(-8px) scale(1.05);
+  box-shadow: 0 0 30px rgba(0, 255, 255, 0.6), 0 10px 30px rgba(0, 0, 0, 0.4);
+}
+
+/* 🎬 Heading Animation */
+.animated-heading {
+  font-size: 1.8rem;
+  font-weight: 600;
+  animation: popUp 0.8s ease-out;
+  color: #0d6efd;
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+@keyframes popUp {
+  0% { transform: scale(0.9); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* 🎥 Movie Detail Styling */
+.movie-title {
+  font-size: 1.8rem;
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+  color: #ffffff;
+}
+
+.movie-description {
+  font-size: 1rem;
+  line-height: 1.6;
+  color: #ffffff;
+}
+
+/* 🎯 Remove underline from title links */
+.title-link {
+  text-decoration: none;
+  color: inherit;
+}
+
+.title-link:hover {
+  text-decoration: none;
+  color: #0d6efd;
+}

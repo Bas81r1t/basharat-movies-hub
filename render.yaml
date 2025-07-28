@@ -1,3 +1,7 @@
+build:
+  environment:
+    python_version: 3.10
+
 services:
   - type: web
     name: basharat-movies-hub
@@ -8,10 +12,12 @@ services:
     startCommand: gunicorn basharat.wsgi:application
     envVars:
       - key: SECRET_KEY
-        value: your_secret_key_here
+        value: django-insecure--0#lkljw^@ia8n-szf$twpo2jvhcz=ri#nj6=ai3ofm$$7ed3b
       - key: CLOUD_NAME
-        value: your_cloud_name_here
+        value: dweltjcfs
       - key: API_KEY
-        value: your_api_key_here
+        value: 589233271357927
       - key: API_SECRET
-        value: your_api_secret_here
+        value: OakuyzEtiypHUy9GHBxzIk6jyqY
+      - key: DATABASE_URL
+        value: postgresql://basharat_db_user:7EGzymVofOkSDG6NgeR6jU2fwDfB0uIo@dpg-d23qsgidbo4c7385piqg-a.oregon-postgres.render.com/basharat_db

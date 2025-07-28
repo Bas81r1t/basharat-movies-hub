@@ -12,7 +12,7 @@ load_dotenv(dotenv_path=os.path.join(BASE_DIR, '.env'))
 # ✅ SECRET + DEBUG
 SECRET_KEY = config('SECRET_KEY')
 DEBUG = True
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['basharat-movies-hub.onrender.com', 'localhost', '127.0.0.1']  # ✅ FIXED
 
 # ✅ Installed Apps
 INSTALLED_APPS = [

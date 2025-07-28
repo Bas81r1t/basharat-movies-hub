@@ -1,10 +1,13 @@
 import os
 from pathlib import Path
+from dotenv import load_dotenv
 from decouple import config
-
 
 # ✅ BASE DIR
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# ✅ Load .env manually
+load_dotenv(dotenv_path=os.path.join(BASE_DIR, '.env'))
 
 # ✅ SECRET + DEBUG
 SECRET_KEY = config('SECRET_KEY')
@@ -85,24 +88,32 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
 
-# ✅ Static Files (Required for Render deployment)
+# ✅ Static Files (Render compatible)
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
-# ✅ Media Files (Backup local usage only)
+# ✅ Media Files (local)
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-# ✅ Cloudinary Media Storage Setup
+# ✅ Cloudinary Setup (via .env)
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
 CLOUDINARY_STORAGE = {
     'CLOUD_NAME': config('CLOUD_NAME'),
     'API_KEY': config('API_KEY'),
-    'API_SECRET': config('API_SECRET')
+    'API_SECRET': config('API_SECRET'),
 }
 
+# ✅ Register Cloudinary at Runtime (MUST HAVE)
+import cloudinary
+cloudinary.config(
+    cloud_name=config('CLOUD_NAME'),
+    api_key=config('API_KEY'),
+    api_secret=config('API_SECRET'),
+    secure=True
+)
 
-# ✅ Default Primary Key Field
+# ✅ Default Auto Field
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

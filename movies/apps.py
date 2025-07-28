@@ -5,4 +5,4 @@ class MoviesConfig(AppConfig):
     name = 'movies'
 
     def ready(self):
-        import movies.signals
+        import movies.signals  # ✅ This imports the signal handlers

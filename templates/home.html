@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load cloudinary %}  {# ✅ Add this line to load Cloudinary template tags #}
 
 {% block content %}
 <div class="container mt-4">
@@ -26,7 +27,7 @@
         <div class="col-md-3 mb-3">
           <div class="card movie-card">
             <a href="{% url 'movie_detail' movie.id %}" class="title-link">
-              <img src="{{ movie.poster.url }}" class="card-img-top" alt="{{ movie.title }}">
+              {% cloudinary movie.poster class="card-img-top" alt=movie.title %}
               <div class="card-body text-center">
                 <h5 class="card-title">{{ movie.title }}</h5>
               </div>
@@ -42,7 +43,7 @@
         <div class="col-md-4 mb-3">
           <div class="card movie-card">
             <a href="{% url 'playlist_detail' playlist.id %}" class="title-link">
-              <img src="{{ playlist.banner.url }}" class="card-img-top" alt="{{ playlist.name }}">
+              {% cloudinary playlist.banner class="card-img-top" alt=playlist.name %}
               <div class="card-body text-center">
                 <h5 class="card-title">{{ playlist.name }}</h5>
               </div>
@@ -62,7 +63,7 @@
           <div class="col-md-3 mb-4">
             <div class="card movie-card">
               <a href="{% url 'movie_detail' movie.id %}" class="title-link">
-                <img src="{{ movie.poster.url }}" class="card-img-top" alt="{{ movie.title }}">
+                {% cloudinary movie.poster class="card-img-top" alt=movie.title %}
                 <div class="card-body text-center">
                   <h5 class="card-title">{{ movie.title }}</h5>
                 </div>

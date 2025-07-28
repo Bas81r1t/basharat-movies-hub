@@ -3,6 +3,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 from decouple import config
 import cloudinary
+import dj_database_url  # ✅ Added for PostgreSQL URL parsing
 
 # ✅ BASE DIR
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -69,12 +70,13 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'basharat.wsgi.application'
 
-# ✅ Database (SQLite)
+# ✅ Final PostgreSQL Database Setup (for Render)
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    'default': dj_database_url.config(
+        default=os.environ.get('DATABASE_URL'),
+        conn_max_age=600,
+        ssl_require=True
+    )
 }
 
 # ✅ Password Validation

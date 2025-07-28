@@ -7,7 +7,11 @@ services:
       python manage.py collectstatic --noinput
     startCommand: gunicorn basharat.wsgi:application
     envVars:
-      - key: DJANGO_SETTINGS_MODULE
-        value: basharat.settings
-      - key: PYTHON_VERSION
-        value: 3.10
+      - key: SECRET_KEY
+        value: your_secret_key_here
+      - key: CLOUD_NAME
+        value: your_cloud_name_here
+      - key: API_KEY
+        value: your_api_key_here
+      - key: API_SECRET
+        value: your_api_secret_here

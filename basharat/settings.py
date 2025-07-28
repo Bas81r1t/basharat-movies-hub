@@ -3,7 +3,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 from decouple import config
 import cloudinary
-import dj_database_url  # ✅ Added for PostgreSQL URL parsing
+import dj_database_url  # ✅ For Render PostgreSQL
 
 # ✅ BASE DIR
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -37,10 +37,10 @@ INSTALLED_APPS = [
     'django.contrib.sitemaps',
 ]
 
-# ✅ Middleware (WhiteNoise included)
+# ✅ Middleware
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',  # ✅ WhiteNoise added
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # ✅ WhiteNoise for static files
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -70,14 +70,24 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'basharat.wsgi.application'
 
-# ✅ Final PostgreSQL Database Setup (for Render)
-DATABASES = {
-    'default': dj_database_url.config(
-        default=os.environ.get('DATABASE_URL'),
-        conn_max_age=600,
-        ssl_require=True
-    )
-}
+# ✅ Smart database setup (PostgreSQL for Render, SQLite for local)
+DATABASE_URL = os.environ.get('DATABASE_URL')
+
+if DATABASE_URL:
+    DATABASES = {
+        'default': dj_database_url.config(
+            default=DATABASE_URL,
+            conn_max_age=600,
+            ssl_require=True
+        )
+    }
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 # ✅ Password Validation
 AUTH_PASSWORD_VALIDATORS = [
@@ -93,17 +103,17 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
 
-# ✅ Static Files (Render + WhiteNoise)
+# ✅ Static Files
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-# ✅ Media Files (Local)
+# ✅ Media Files
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-# ✅ Cloudinary Config (from .env)
+# ✅ Cloudinary Storage
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
 CLOUDINARY_STORAGE = {
@@ -112,7 +122,7 @@ CLOUDINARY_STORAGE = {
     'API_SECRET': config('API_SECRET'),
 }
 
-# ✅ Runtime Cloudinary Setup
+# ✅ Runtime Cloudinary Config
 cloudinary.config(
     cloud_name=config('CLOUD_NAME'),
     api_key=config('API_KEY'),
@@ -120,5 +130,5 @@ cloudinary.config(
     secure=True
 )
 
-# ✅ Auto Field
+# ✅ Default Auto Field
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

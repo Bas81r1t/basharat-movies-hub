@@ -12,7 +12,7 @@ load_dotenv(dotenv_path=os.path.join(BASE_DIR, '.env'))
 # ✅ SECRET + DEBUG
 SECRET_KEY = config('SECRET_KEY')
 DEBUG = True
-ALLOWED_HOSTS = ['basharat-movies-hub.onrender.com', 'localhost', '127.0.0.1']  # ✅ FIXED
+ALLOWED_HOSTS = ['basharat-movies-hub.onrender.com', 'localhost', '127.0.0.1']
 
 # ✅ Installed Apps
 INSTALLED_APPS = [
@@ -34,9 +34,10 @@ INSTALLED_APPS = [
     'cloudinary_storage',
 ]
 
-# ✅ Middleware
+# ✅ Middleware (WhiteNoise added)
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # ✅ Required for Render
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -88,10 +89,13 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
 
-# ✅ Static Files (Render compatible)
+# ✅ Static Files (WhiteNoise + Render compatible)
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+# ✅ WhiteNoise Static file storage
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # ✅ Media Files (local)
 MEDIA_URL = '/media/'

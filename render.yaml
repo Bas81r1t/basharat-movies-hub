@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: basharat-movies-hub
+    env: python
+    buildCommand: "./build.sh"
+    startCommand: "gunicorn basharat.wsgi:application"
+    envVars:
+      - key: DJANGO_SETTINGS_MODULE
+        value: basharat.settings
+      - key: PYTHON_VERSION
+        value: 3.10
+      - fromDatabase:
+          name: basharat-db
+          property: connectionString
+          key: DATABASE_URL
+
+databases:
+  - name: basharat-db

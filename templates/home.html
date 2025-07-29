@@ -1,13 +1,11 @@
 {% extends 'base.html' %}
 {% load static %}
-{% load cloudinary %}  {# ✅ Add this line to load Cloudinary template tags #}
+{% load cloudinary %}
 
 {% block content %}
 <div class="container mt-4">
 
-  <h2 class="mb-3">🎬 Playlists</h2>
-
-  <!-- 🔍 Search Bar -->
+  <!-- 🔍 Search Bar (Moved to Top) -->
   <form method="get" action="" class="mb-4">
     <div class="input-group">
       <input type="text" name="q" class="form-control" placeholder="Search movies..." value="{{ query|default:'' }}">
@@ -37,6 +35,8 @@
       {% endfor %}
     </div>
   {% else %}
+    <h2 class="mb-3">🎬 Playlists</h2>
+
     <!-- 🎬 Playlist Cards -->
     <div class="row">
       {% for playlist in playlists %}

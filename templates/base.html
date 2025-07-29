@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  
+
   <title>Basharat Movies Hub</title>
 
   <!-- ✅ Bootstrap CDN (Fast & reliable) -->
@@ -13,8 +13,12 @@
   <!-- ✅ Custom CSS -->
   <link rel="stylesheet" href="{% static 'css/style.css' %}">
 
-  <!-- ✅ Favicon (optional) -->
-  <link rel="icon" type="image/png" href="{% static 'images/favicon.png' %}">
+  <!-- ✅ Favicon for browser tab -->
+  <link rel="icon" type="image/png" href="{% static 'images/icon.png' %}">
+
+  <!-- ✅ App Icon for Add to Home Screen -->
+  <link rel="apple-touch-icon" sizes="192x192" href="{% static 'images/icon.png' %}">
+  <link rel="apple-touch-icon" sizes="512x512" href="{% static 'images/icon.png' %}">
 
 </head>
 
@@ -51,7 +55,7 @@
 
   <!-- 🌙 Footer -->
   <footer class="bg-dark text-light text-center p-3">
-    © 2025 Basharat Movies Hub | Made with ❤️ by Rocio
+    © 2025 Basharat Movies Hub | Made ❤️ by Basharat
   </footer>
 
   <!-- Bootstrap JS -->

@@ -1,4 +1,20 @@
 <h2>All Movies</h2>
-{% for movie in movies %}
-    <p>{{ movie.title }}</p>
-{% endfor %}
+
+<div class="row">
+  {% for movie in movies %}
+    <div class="col-md-4 mb-4">
+      <div class="card shadow-sm border-0" style="background-color: #1c1c1c; color: #fff; transition: 0.3s; border-radius: 12px;">
+        <img src="{{ movie.poster.url }}" class="card-img-top" style="height: 300px; object-fit: cover; border-top-left-radius: 12px; border-top-right-radius: 12px;">
+        <div class="card-body">
+          <h5 class="card-title">{{ movie.title }}</h5>
+          <p class="card-text">{{ movie.description|truncatechars:100 }}</p>
+          <a href="https://fastcdn-dl.pages.dev/?url={{ movie.download_link }}" target="_blank" class="btn btn-success w-100" download>
+            🎬 Instant Download
+          </a>
+        </div>
+      </div>
+    </div>
+  {% empty %}
+    <p class="text-light">No movies found.</p>
+  {% endfor %}
+</div>

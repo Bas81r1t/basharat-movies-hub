@@ -7,16 +7,14 @@
 
   <title>Basharat Movies Hub</title>
 
-  <!-- ✅ Bootstrap CDN (Fast & reliable) -->
+  <!-- ✅ Bootstrap CDN -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
   <!-- ✅ Custom CSS -->
   <link rel="stylesheet" href="{% static 'css/style.css' %}">
 
-  <!-- ✅ Favicon for browser tab -->
+  <!-- ✅ Favicon -->
   <link rel="icon" type="image/png" href="{% static 'images/icon.png' %}">
-
-  <!-- ✅ App Icon for Add to Home Screen -->
   <link rel="apple-touch-icon" sizes="192x192" href="{% static 'images/icon.png' %}">
   <link rel="apple-touch-icon" sizes="512x512" href="{% static 'images/icon.png' %}">
 
@@ -49,14 +47,16 @@
   </nav>
 
   <!-- 🔽 Page Content -->
-  <div class="container mt-4">
+  <div class="container mt-4 mb-5">
     {% block content %}{% endblock %}
   </div>
 
-  <!-- 🌙 Footer -->
-  <footer class="bg-dark text-light text-center p-3">
-    © 2025 Basharat Movies Hub | Made ❤️ by Basharat
-  </footer>
+  <!-- 🌙 Footer (Only show on homepage and fixed bottom) -->
+  {% if request.path == '/' %}
+    <footer class="bg-dark text-light text-center p-3 footer-fixed">
+      © 2025 Basharat Movies Hub | Made ❤️ by Basharat
+    </footer>
+  {% endif %}
 
   <!-- Bootstrap JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

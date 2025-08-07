@@ -14,6 +14,7 @@ class Movie(models.Model):
     description = models.TextField()
     poster = CloudinaryField('poster')  # ✅ Cloudinary poster field
     download_link = models.URLField()
+    udrop_link = models.URLField(blank=True, null=True)  # ✅ 🔄 Auto Shuffle field added
     playlist = models.ForeignKey(Playlist, on_delete=models.SET_NULL, null=True, blank=True)
 
     def __str__(self):

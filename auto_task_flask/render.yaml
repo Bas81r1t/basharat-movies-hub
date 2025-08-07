@@ -1,0 +1,7 @@
+services:
+  - type: worker
+    name: gofile-auto-refresh-worker
+    env: python
+    buildCommand: pip install -r auto_task_flask/requirements.txt
+    startCommand: bash auto_task_flask/start.sh
+    plan: free

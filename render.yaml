@@ -21,3 +21,10 @@ services:
         value: OakuyzEtiypHUy9GHBxzIk6jyqY
       - key: DATABASE_URL
         value: postgresql://basharat_db_user:7EGzymVofOkSDG6NgeR6jU2fwDfB0uIo@dpg-d23qsgidbo4c7385piqg-a.oregon-postgres.render.com/basharat_db
+
+  - type: worker
+    name: gofile-auto-refresh-worker
+    env: python
+    buildCommand: pip install -r auto_task_flask/requirements.txt
+    startCommand: bash auto_task_flask/start.sh
+    plan: free

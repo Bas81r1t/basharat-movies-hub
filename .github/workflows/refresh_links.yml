@@ -2,7 +2,7 @@ name: Auto Refresh Gofile Links
 
 on:
   schedule:
-    - cron: "0 0 */5 * *" # हर 5 दिन में एक बार चलेगा
+    - cron: "0 0 */5 * *" # Har 5 din me chalega
   workflow_dispatch:
 
 jobs:
@@ -10,17 +10,18 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Repo
-        uses: actions/checkout@v3
+      - name: Repo Checkout
+        uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
+      - name: Setup Python
+        uses: actions/setup-python@v5
         with:
-          python-version: "3.10"
+          python-version: "3.x"
 
-      - name: Install dependencies
-        run: |
-          pip install -r requirements.txt
+      - name: Install Dependencies
+        run: pip install -r requirements.txt
 
-      - name: Run refresh_links.py
+      - name: Run Script
         run: python refresh_links.py
+        # Agar script kisi folder me hai to path yaha badlo:
+        # run: python scripts/refresh_links.py

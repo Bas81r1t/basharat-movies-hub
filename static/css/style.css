@@ -28,7 +28,8 @@ body {
   color: #000000 !important;
 }
 
-.light-mode .card {
+.light-mode .card,
+.light-mode .movie-card {
   background-color: #ffffff;
   color: #000000;
   border: 1px solid #ccc;

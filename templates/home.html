@@ -22,7 +22,7 @@
 
     <div class="row mt-3">
       {% for movie in movies %}
-        <div class="col-6 col-sm-4 col-md-3 mb-3">  {# Updated cols for responsive grid #}
+        <div class="col-6 col-sm-4 col-md-3 mb-3">  {# Responsive cols for movies #}
           <div class="card movie-card h-100">
             <a href="{% url 'movie_detail' movie.id %}" class="title-link">
               {% cloudinary movie.poster class="card-img-top" alt=movie.title %}
@@ -40,7 +40,7 @@
 
     <div class="row">
       {% for playlist in playlists %}
-        <div class="col-12 col-sm-6 col-md-4 mb-3">  {# Responsive cols #}
+        <div class="col-6 col-sm-4 col-md-3 mb-3">  {# Responsive cols for playlists, equal size as movies #}
           <div class="card movie-card h-100">
             <a href="{% url 'playlist_detail' playlist.id %}" class="title-link">
               {% cloudinary playlist.banner class="card-img-top" alt=playlist.name %}
@@ -59,7 +59,7 @@
       </h3>
       <div class="row mt-4">
         {% for movie in unlisted_movies %}
-          <div class="col-6 col-sm-4 col-md-3 mb-4">  {# Responsive cols #}
+          <div class="col-6 col-sm-4 col-md-3 mb-4">  {# Responsive cols for uploads #}
             <div class="card movie-card h-100">
               <a href="{% url 'movie_detail' movie.id %}" class="title-link">
                 {% cloudinary movie.poster class="card-img-top" alt=movie.title %}

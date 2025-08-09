@@ -30,14 +30,7 @@
                 <h5 class="card-title">{{ movie.title }}</h5>
               </div>
             </a>
-
-            <!-- ✅ Gofile Link (if available) -->
-            {% if movie.download_link %}
-            <div class="card-footer text-center">
-              <a href="{{ movie.download_link }}" class="btn btn-success" target="_blank">🔗 Download</a>
-            </div>
-            {% endif %}
-
+            <!-- ✅ Green button removed here -->
           </div>
         </div>
       {% endfor %}
@@ -76,14 +69,7 @@
                   <h5 class="card-title">{{ movie.title }}</h5>
                 </div>
               </a>
-
-              <!-- ✅ Gofile Link (if available) -->
-              {% if movie.download_link %}
-              <div class="card-footer text-center">
-                <a href="{{ movie.download_link }}" class="btn btn-success" target="_blank">🔗 Download</a>
-              </div>
-              {% endif %}
-
+              <!-- ✅ Green button removed here too -->
             </div>
           </div>
         {% endfor %}

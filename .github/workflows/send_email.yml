@@ -28,3 +28,4 @@ jobs:
           EMAIL_PASS: ${{ secrets.EMAIL_PASS }}
           TO_EMAIL: ${{ secrets.TO_EMAIL }}
         run: python refresh_links.py
+  

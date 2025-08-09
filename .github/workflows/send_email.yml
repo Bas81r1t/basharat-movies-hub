@@ -3,7 +3,7 @@ name: Send Email Report
 on:
   push:
     branches:
-      - main # Aapki default branch ka naam (agar 'master' hai toh wahan 'master' likho)
+      - main
 
 jobs:
   send_email:
@@ -19,10 +19,12 @@ jobs:
           python-version: "3.x"
 
       - name: Install dependencies
-        run: pip install yagmail
+        run: |
+          pip install requests beautifulsoup4
 
-      - name: Send Email
+      - name: Run refresh_links.py to send report email
         env:
-          GMAIL_USERNAME: ${{ secrets.GMAIL_USERNAME }}
-          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
-        run: python send_email.py
+          EMAIL_USER: ${{ secrets.EMAIL_USER }}
+          EMAIL_PASS: ${{ secrets.EMAIL_PASS }}
+          TO_EMAIL: ${{ secrets.TO_EMAIL }}
+        run: python refresh_links.py

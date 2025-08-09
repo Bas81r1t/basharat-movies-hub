@@ -6,8 +6,7 @@
   <h2 class="mb-3">{{ playlist.name }}</h2>
   <div class="row">
     {% for movie in movies %}
-      <div class="col-md-3 mb-3">
-        <!-- ✅ Fixed card classes for hover glow -->
+      <div class="col-6 col-sm-4 col-md-3 mb-3">  {# Responsive grid #}
         <div class="card h-100 shadow-lg movie-card">
           <a href="{% url 'movie_detail' movie.id %}" class="title-link">
             <img src="{{ movie.poster.url }}" class="card-img-top" alt="{{ movie.title }}">

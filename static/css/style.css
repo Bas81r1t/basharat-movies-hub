@@ -71,17 +71,41 @@ body {
   overflow: hidden;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
   box-shadow: 0 0 8px rgba(0, 255, 255, 0.1); /* base glow */
+  display: flex;
+  flex-direction: column;
+  height: 100%; /* Make cards equal height in grid */
 }
 
 .card-img-top {
   object-fit: cover;
-  height: 300px;
+  height: 250px;  /* Adjust height for mobile-friendly */
+  width: 100%;
+  border-top-left-radius: 12px;
+  border-top-right-radius: 12px;
+  flex-shrink: 0;
+}
+
+.card-body {
+  flex-grow: 1; /* Makes card body fill the remaining space */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  text-align: center;
+}
+
+.card-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0;
+  color: inherit;
 }
 
 .card:hover,
 .movie-card:hover {
   transform: translateY(-8px) scale(1.05);
   box-shadow: 0 0 30px rgba(0, 255, 255, 0.6), 0 10px 30px rgba(0, 0, 0, 0.4);
+  cursor: pointer;
 }
 
 /* 🎬 Heading Animation */

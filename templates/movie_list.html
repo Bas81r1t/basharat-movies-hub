@@ -2,13 +2,12 @@
 
 <div class="row">
   {% for movie in movies %}
-    <div class="col-md-4 mb-4">
-      <div class="card shadow-sm border-0" style="background-color: #1c1c1c; color: #fff; transition: 0.3s; border-radius: 12px;">
+    <div class="col-6 col-sm-4 col-md-4 mb-4">  {# Responsive grid #}
+      <div class="card shadow-sm border-0 movie-card" style="background-color: #1c1c1c; color: #fff; transition: 0.3s; border-radius: 12px; height: 100%;">
         <img src="{{ movie.poster.url }}" class="card-img-top" style="height: 300px; object-fit: cover; border-top-left-radius: 12px; border-top-right-radius: 12px;">
         <div class="card-body">
           <h5 class="card-title">{{ movie.title }}</h5>
           <p class="card-text">{{ movie.description|truncatechars:100 }}</p>
-          <!-- ✅ Green button removed -->
         </div>
       </div>
     </div>

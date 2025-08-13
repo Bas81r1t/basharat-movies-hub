@@ -13,7 +13,7 @@ load_dotenv(dotenv_path=os.path.join(BASE_DIR, '.env'))
 
 # ✅ Secret Key & Debug
 SECRET_KEY = config('SECRET_KEY')
-DEBUG = True
+DEBUG = True  # Production में False करना
 
 ALLOWED_HOSTS = ['basharat-movies-hub.onrender.com', 'localhost', '127.0.0.1']
 
@@ -70,7 +70,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'basharat.wsgi.application'
 
-# ✅ DATABASE (Always use external PostgreSQL for production)
+# ✅ DATABASE
 DATABASES = {
     'default': dj_database_url.config(
         default='postgresql://basharat_db_user:7EGzymVofOkSDG6NgeR6jU2fwDfB0uIo@dpg-d23qsgidbo4c7385piqg-a.oregon-postgres.render.com/basharat_db',
@@ -118,6 +118,9 @@ cloudinary.config(
     api_secret=config('API_SECRET'),
     secure=True
 )
+
+# ✅ Proxy URLs (VPN-like system)
+PROXY_URLS = os.getenv("PROXY_URLS", "")  # Example in .env → PROXY_URLS=http://user:pass@us-proxy:8080, socks5://user:pass@eu-proxy:1080
 
 # ✅ Auto Field
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

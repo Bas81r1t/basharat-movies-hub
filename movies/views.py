@@ -1,12 +1,18 @@
-from django.shortcuts import render, get_object_or_404
-from .models import Playlist, Movie
+from django.shortcuts import render, get_object_or_404, redirect
+from .models import Playlist, Movie, DownloadLog, InstallTracker
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+import json
 
+# ------------------------
+# Existing Views
+# ------------------------
 def home(request):
     query = request.GET.get('q')
     playlists = Playlist.objects.all()
     movies = None
     not_found = False
-    unlisted_movies = Movie.objects.filter(playlist__isnull=True)  # 🎯 Movies without playlist
+    unlisted_movies = Movie.objects.filter(playlist__isnull=True)
 
     if query:
         movies = Movie.objects.filter(title__icontains=query)
@@ -18,7 +24,7 @@ def home(request):
         'movies': movies,
         'query': query,
         'not_found': not_found,
-        'unlisted_movies': unlisted_movies  # Pass to template
+        'unlisted_movies': unlisted_movies
     })
 
 def playlist_detail(request, playlist_id):
@@ -32,9 +38,6 @@ def playlist_detail(request, playlist_id):
 def movie_detail(request, movie_id):
     movie = get_object_or_404(Movie, id=movie_id)
     return render(request, 'movie_detail.html', {'movie': movie})
-
-from django.shortcuts import redirect, get_object_or_404
-from .models import Movie, DownloadLog
 
 def get_client_ip(request):
     x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
@@ -60,3 +63,17 @@ def download_movie(request, movie_id):
 
     return redirect(movie.download_link)
 
+# ------------------------
+# New View for PWA Install Tracking
+# ------------------------
+@csrf_exempt
+def track_install(request):
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+            device = data.get('device', 'Unknown device')
+            InstallTracker.objects.create(device_info=device)
+            return JsonResponse({'status': 'success'})
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)})
+    return JsonResponse({'status': 'fail'})

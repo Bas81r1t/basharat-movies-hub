@@ -1,0 +1,63 @@
+{% extends "admin/index.html" %}
+{% load static %}
+
+{% block content %}
+
+<!-- ------------------ -->
+<!-- PWA Installs Stats -->
+<!-- ------------------ -->
+<div style="display:flex; gap:20px; flex-wrap:wrap; margin-bottom:20px;">
+
+    <!-- Total Installs Widget -->
+    <div style="background:#1c1c1c; color:white; padding:20px; border-radius:10px; flex:1; min-width:200px;">
+        <h3>Total PWA Installs</h3>
+        <p style="font-size:2em;">{{ total_installs }}</p>
+    </div>
+
+    <!-- Recent Installs Widget -->
+    <div style="background:#1c1c1c; color:white; padding:20px; border-radius:10px; flex:2; min-width:300px;">
+        <h3>Recent Installs</h3>
+        <ul>
+            {% for install in recent_installs %}
+                <li>{{ install.device_info }} — {{ install.installed_at|date:"d M Y H:i" }}</li>
+            {% empty %}
+                <li>No installs yet</li>
+            {% endfor %}
+        </ul>
+    </div>
+
+</div>
+
+<!-- ------------------ -->
+<!-- DownloadLog Stats -->
+<!-- ------------------ -->
+<div style="display:flex; gap:20px; flex-wrap:wrap; margin-bottom:20px;">
+
+    <!-- Top 5 Most Downloaded Movies -->
+    <div style="background:#1c1c1c; color:white; padding:20px; border-radius:10px; flex:1; min-width:200px;">
+        <h3>Top 5 Downloaded Movies</h3>
+        <ul>
+            {% for movie in top_movies %}
+                <li>{{ movie.movie_title }} — {{ movie.download_count }} downloads</li>
+            {% empty %}
+                <li>No downloads yet</li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <!-- Recent Downloads -->
+    <div style="background:#1c1c1c; color:white; padding:20px; border-radius:10px; flex:2; min-width:300px;">
+        <h3>Recent Downloads</h3>
+        <ul>
+            {% for dl in recent_downloads %}
+                <li>{{ dl.movie_title }} by {{ dl.username|default:"Anonymous" }} — {{ dl.download_time|date:"d M Y H:i" }}</li>
+            {% empty %}
+                <li>No downloads yet</li>
+            {% endfor %}
+        </ul>
+    </div>
+
+</div>
+
+{{ block.super }}
+{% endblock %}

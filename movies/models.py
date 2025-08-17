@@ -29,7 +29,8 @@ class DownloadLog(models.Model):
     username = models.CharField(max_length=150, blank=True, null=True)
 
     def __str__(self):
-        return f"{self.movie_title} by {self.username or 'Anonymous'}"
+        user_display = self.username or self.user_email or "Anonymous"
+        return f"{self.movie_title} by {user_display} at {self.download_time.strftime('%Y-%m-%d %H:%M')}"
 
 # ✅ New Model for PWA Install Tracking
 class InstallTracker(models.Model):
@@ -37,4 +38,4 @@ class InstallTracker(models.Model):
     installed_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.device_info} at {self.installed_at}"
+        return f"{self.device_info[:30]}... ({self.installed_at.strftime('%Y-%m-%d %H:%M')})"

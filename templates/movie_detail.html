@@ -6,7 +6,7 @@
   <meta name="description" content="{{ movie.description|truncatechars:150 }}">
   <meta name="keywords" content="{{ movie.title }}, Basharat Movies Hub, Download Movies, Free HD Movies">
   
-  <!-- ✅ Social Sharing Meta Tags -->
+  <!-- Social Sharing Meta Tags -->
   <meta property="og:title" content="{{ movie.title }}">
   <meta property="og:description" content="{{ movie.description|truncatechars:150 }}">
   <meta property="og:image" content="{{ movie.poster.url }}">
@@ -23,7 +23,8 @@
     <div class="col-md-8">
       <h2 class="movie-title">{{ movie.title }}</h2>
       <p class="movie-description">{{ movie.description }}</p>
-      <a href="{{ movie.download_link }}" class="btn btn-primary">Download Now</a>
+      <!-- ✅ Updated to call download_movie view -->
+      <a href="{% url 'download_movie' movie.id %}" class="btn btn-primary">Download Now</a>
     </div>
   </div>
 </div>

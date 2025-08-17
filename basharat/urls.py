@@ -16,15 +16,17 @@ Including another URLconf
 """
 # basharat/urls.py
 
-from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 
+# ✅ Custom admin import
+from movies.admin import admin_site  
+
 # ✅ Sitemap imports
 from django.contrib.sitemaps.views import sitemap
 from django.contrib.sitemaps import Sitemap
-from movies.models import Movie  # ⬅️ tumhara model yahaan import ho
+from movies.models import Movie  
 
 # ✅ Movie Sitemap Class
 class MovieSitemap(Sitemap):
@@ -35,7 +37,7 @@ class MovieSitemap(Sitemap):
         return Movie.objects.all()
 
     def location(self, obj):
-        return f'/movie/{obj.id}/'  # ⬅️ yeh tumhare actual movie detail URL ke according ho
+        return f'/movie/{obj.id}/'
 
 # ✅ Sitemaps dictionary
 sitemaps = {
@@ -43,11 +45,11 @@ sitemaps = {
 }
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('', include('movies.urls')),  # ✅ tumhara main app 'movies'
+    path("admin/", admin_site.urls),   # <-- yaha change kiya hai
+    path("", include("movies.urls")),
 
     # ✅ Sitemap URL
-    path('sitemap.xml', sitemap, {'sitemaps': sitemaps}, name='sitemap'),
+    path("sitemap.xml", sitemap, {"sitemaps": sitemaps}, name="sitemap"),
 ]
 
 # ✅ Media files serve karne ke liye (images/posters)

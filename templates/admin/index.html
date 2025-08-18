@@ -1,5 +1,5 @@
 {% extends "admin/base_site.html" %}
-{% load i18n log %}
+{% load i18n log tz %}
 
 {% block extrastyle %}
   {{ block.super }}
@@ -150,7 +150,7 @@
         <h2><span class="icon">🆕</span>Recent Installs</h2>
         <ul>
           {% for install in recent_installs %}
-            <li>{{ install.device_info|truncatechars:40 }} ({{ install.installed_at|date:"Y-m-d H:i" }})</li>
+            <li>{{ install.device_info|truncatechars:40 }} ({{ install.installed_at|localtime|date:"M d, Y h:i A" }})</li>
           {% empty %}
             <li>No installs yet</li>
           {% endfor %}
@@ -174,7 +174,7 @@
         <h2><span class="icon">⬇️</span>Recent Downloads</h2>
         <ul>
           {% for download in recent_downloads %}
-            <li>{{ download.movie_title }} ({{ download.download_time|date:"Y-m-d H:i" }})</li>
+            <li>{{ download.movie_title }} ({{ download.download_time|localtime|date:"M d, Y h:i A" }})</li>
           {% empty %}
             <li>No downloads yet</li>
           {% endfor %}

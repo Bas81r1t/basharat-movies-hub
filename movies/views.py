@@ -8,44 +8,20 @@ import json
 import re
 
 # ------------------------
-# Helpers: Parse season/episode from title
+# Helper: Extract Episode Number
 # ------------------------
-def _parse_season_and_episode(title: str):
-    """
-    Title patterns handled:
-    - "Panchayat S01 Episode 4"
-    - "S1 E4", "S01E04", "Season 1 Ep 4"
-    - "Episode 4", "Ep 4", "E4"
-    Fallback: last number in the title as episode.
-    """
-    t = title or ""
+def extract_episode_number(title):
+    # Pehle "Episode X" wala number dhoondo
+    match = re.search(r'[Ee]pisode\s*(\d+)', title)
+    if match:
+        return int(match.group(1))
 
-    # Season (optional)
-    season = None
-    m_season = re.search(r'(?:season|s)\s*0*(\d+)', t, flags=re.IGNORECASE)
-    if m_season:
-        season = int(m_season.group(1))
+    # Agar episode nahi mila to pehla number le lo (fallback)
+    match = re.search(r'\d+', title)
+    if match:
+        return int(match.group())
 
-    # Episode (prefer explicit "episode/ep/e" before digits)
-    m_ep = re.search(r'(?:episode|ep|e)\s*[:\-#]*\s*0*(\d+)', t, flags=re.IGNORECASE)
-    if m_ep:
-        episode = int(m_ep.group(1))
-    else:
-        # Fallback: pick the last number in the title (often episode)
-        nums = re.findall(r'\d+', t)
-        episode = int(nums[-1]) if nums else float('inf')
-
-    # If no season mentioned, treat as season 0 so that those items
-    # come before very large seasons but still sort by episode.
-    if season is None:
-        season = 0
-
-    return season, episode
-
-def _title_sort_key(title: str):
-    season, episode = _parse_season_and_episode(title)
-    # Add title lower as tertiary key for stable deterministic order
-    return (season, episode, (title or "").lower())
+    return float('inf')  # agar number hi nahi mila to last me bhej do
 
 # ------------------------
 # Existing Views
@@ -72,10 +48,10 @@ def home(request):
 
 def playlist_detail(request, playlist_id):
     playlist = get_object_or_404(Playlist, id=playlist_id)
-    qs = Movie.objects.filter(playlist=playlist)
+    movies = Movie.objects.filter(playlist=playlist)
 
-    # ✅ Sort by (season, episode) parsed from the title.
-    movies = sorted(qs, key=lambda m: _title_sort_key(m.title))
+    # ✅ Sort movies by extracted episode number
+    movies = sorted(movies, key=lambda m: extract_episode_number(m.title))
 
     return render(request, 'playlist_detail.html', {
         'playlist': playlist,
@@ -106,9 +82,9 @@ def download_movie(request, movie_id):
     user_email = request.user.email if request.user.is_authenticated else None
     username = request.user.username if request.user.is_authenticated else None
 
-    # ✅ Save download log
+    # ✅ Save download log (TypeError fix)
     DownloadLog.objects.create(
-        movie_title=movie.title,
+        movie_title=movie.title,   # sirf ye rakho
         ip_address=ip,
         user_agent=agent,
         user_email=user_email,

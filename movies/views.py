@@ -115,11 +115,17 @@ def contact_view(request):
         body = f"Name: {name}\nEmail: {email}\nMessage:\n{message}"
 
         try:
-            send_mail(subject, body, settings.DEFAULT_FROM_EMAIL, [settings.EMAIL_HOST_USER])
+            send_mail(
+                subject,
+                body,
+                settings.EMAIL_HOST_USER,  # sender (gmail app password wala)
+                [settings.EMAIL_HOST_USER],  # receiver (apna email)
+                fail_silently=False
+            )
             messages.success(request, "✅ Message sent successfully! We’ll contact you soon.")
         except Exception as e:
-            messages.error(request, f"❌ Could not send message. Please try again later.")
-            print(f"Contact form email error: {e}")  # For debug in Render logs
+            messages.error(request, "❌ Could not send message. Please try again later.")
+            print(f"Contact form email error: {e}")  # Debugging Render logs
 
         return redirect("contact")
 

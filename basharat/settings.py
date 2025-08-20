@@ -15,7 +15,11 @@ load_dotenv(dotenv_path=os.path.join(BASE_DIR, '.env'))
 SECRET_KEY = config('SECRET_KEY', default='django-insecure-default-key')
 DEBUG = config('DEBUG', default=True, cast=bool)
 
-ALLOWED_HOSTS = ['basharat-movies-hub.onrender.com', 'localhost', '127.0.0.1']
+ALLOWED_HOSTS = [
+    'basharat-movies-hub.onrender.com',
+    'localhost',
+    '127.0.0.1'
+]
 
 # ✅ Installed Apps
 INSTALLED_APPS = [
@@ -70,7 +74,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'basharat.wsgi.application'
 
-# ✅ DATABASE (PostgreSQL external)
+# ✅ Database (PostgreSQL external / local fallback)
 DATABASES = {
     'default': dj_database_url.config(
         default=config(
@@ -127,6 +131,8 @@ EMAIL_PORT = config('EMAIL_PORT', cast=int, default=587)
 EMAIL_USE_TLS = config('EMAIL_USE_TLS', cast=bool, default=True)
 EMAIL_HOST_USER = config('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
+
+# From email (sender address)
 DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default=EMAIL_HOST_USER)
 
 # ✅ Auto Field

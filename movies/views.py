@@ -118,7 +118,8 @@ def contact_view(request):
             send_mail(subject, body, settings.DEFAULT_FROM_EMAIL, [settings.EMAIL_HOST_USER])
             messages.success(request, "✅ Message sent successfully! We’ll contact you soon.")
         except Exception as e:
-            messages.error(request, f"❌ Error sending message: {e}")
+            messages.error(request, f"❌ Could not send message. Please try again later.")
+            print(f"Contact form email error: {e}")  # For debug in Render logs
 
         return redirect("contact")
 

@@ -8,12 +8,12 @@ import dj_database_url
 # ✅ Base Directory
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# ✅ Load .env manually
+# ✅ Load .env manually (local testing)
 load_dotenv(dotenv_path=os.path.join(BASE_DIR, '.env'))
 
 # ✅ Secret Key & Debug
-SECRET_KEY = config('SECRET_KEY')
-DEBUG = True
+SECRET_KEY = config('SECRET_KEY', default='django-insecure-default-key')
+DEBUG = config('DEBUG', default=True, cast=bool)
 
 ALLOWED_HOSTS = ['basharat-movies-hub.onrender.com', 'localhost', '127.0.0.1']
 
@@ -70,10 +70,13 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'basharat.wsgi.application'
 
-# ✅ DATABASE (Always use external PostgreSQL for production)
+# ✅ DATABASE (PostgreSQL external)
 DATABASES = {
     'default': dj_database_url.config(
-        default='postgresql://basharat_db_user:7EGzymVofOkSDG6NgeR6jU2fwDfB0uIo@dpg-d23qsgidbo4c7385piqg-a.oregon-postgres.render.com/basharat_db',
+        default=config(
+            'DATABASE_URL',
+            default='postgresql://user:password@localhost:5432/dbname'
+        ),
         conn_max_age=600,
         ssl_require=True
     )
@@ -89,7 +92,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # ✅ Language & Timezone
 LANGUAGE_CODE = 'en-us'
-TIME_ZONE = 'Asia/Kolkata'   # 👈 IST
+TIME_ZONE = 'Asia/Kolkata'
 USE_I18N = True
 USE_TZ = True
 
@@ -105,28 +108,29 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # ✅ Cloudinary Configuration
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
-
 CLOUDINARY_STORAGE = {
-    'CLOUD_NAME': config('CLOUD_NAME'),
-    'API_KEY': config('API_KEY'),
-    'API_SECRET': config('API_SECRET'),
+    'CLOUD_NAME': config('CLOUD_NAME', default='cloud_name'),
+    'API_KEY': config('API_KEY', default='api_key'),
+    'API_SECRET': config('API_SECRET', default='api_secret'),
 }
-
 cloudinary.config(
-    cloud_name=config('CLOUD_NAME'),
-    api_key=config('API_KEY'),
-    api_secret=config('API_SECRET'),
+    cloud_name=config('CLOUD_NAME', default='cloud_name'),
+    api_key=config('API_KEY', default='api_key'),
+    api_secret=config('API_SECRET', default='api_secret'),
     secure=True
 )
 
-# ✅ Email Configuration (Contact Form ke liye)
-EMAIL_BACKEND = config('EMAIL_BACKEND')
-EMAIL_HOST = config('EMAIL_HOST')
-EMAIL_PORT = config('EMAIL_PORT', cast=int)
-EMAIL_USE_TLS = config('EMAIL_USE_TLS', cast=bool)
-EMAIL_HOST_USER = config('EMAIL_HOST_USER')
-EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
-DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL')
+# ✅ Email Configuration (Contact Form)
+EMAIL_BACKEND = config(
+    'EMAIL_BACKEND',
+    default='django.core.mail.backends.console.EmailBackend'
+)
+EMAIL_HOST = config('EMAIL_HOST', default='smtp.gmail.com')
+EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
+EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
+EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default=EMAIL_HOST_USER)
 
 # ✅ Auto Field
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

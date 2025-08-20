@@ -5,7 +5,8 @@ from .views import (
     movie_detail,
     download_movie,
     track_install,
-    get_install_stats,  # ✅ AJAX endpoint for live install stats
+    get_install_stats,
+    contact_view,  # 👈 Added Contact Form view
 )
 
 urlpatterns = [
@@ -16,6 +17,11 @@ urlpatterns = [
     path('playlist/<int:playlist_id>/', playlist_detail, name='playlist_detail'),
     path('movie/<int:movie_id>/', movie_detail, name='movie_detail'),
     path('download/<int:movie_id>/', download_movie, name='download_movie'),
+
+    # ------------------------
+    # Contact Form
+    # ------------------------
+    path('contact/', contact_view, name='contact'),
 
     # ------------------------
     # PWA Install Tracking

@@ -4,6 +4,9 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET
 from django.utils import timezone
+from django.core.mail import send_mail
+from django.conf import settings
+from django.contrib import messages
 import json
 import re
 
@@ -11,17 +14,13 @@ import re
 # Helper: Extract Episode Number
 # ------------------------
 def extract_episode_number(title):
-    # Pehle "Episode X" wala number dhoondo
     match = re.search(r'[Ee]pisode\s*(\d+)', title)
     if match:
         return int(match.group(1))
-
-    # Agar episode nahi mila to pehla number le lo (fallback)
     match = re.search(r'\d+', title)
     if match:
         return int(match.group())
-
-    return float('inf')  # agar number hi nahi mila to last me bhej do
+    return float('inf')
 
 # ------------------------
 # Existing Views
@@ -49,55 +48,36 @@ def home(request):
 def playlist_detail(request, playlist_id):
     playlist = get_object_or_404(Playlist, id=playlist_id)
     movies = Movie.objects.filter(playlist=playlist)
-
-    # ✅ Sort movies by extracted episode number
     movies = sorted(movies, key=lambda m: extract_episode_number(m.title))
-
-    return render(request, 'playlist_detail.html', {
-        'playlist': playlist,
-        'movies': movies
-    })
+    return render(request, 'playlist_detail.html', {'playlist': playlist, 'movies': movies})
 
 def movie_detail(request, movie_id):
     movie = get_object_or_404(Movie, id=movie_id)
     return render(request, 'movie_detail.html', {'movie': movie})
 
-# ------------------------
-# Helper to get client IP
-# ------------------------
 def get_client_ip(request):
     x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
     if x_forwarded_for:
         return x_forwarded_for.split(',')[0]
     return request.META.get('REMOTE_ADDR')
 
-# ------------------------
-# Download Logging
-# ------------------------
 def download_movie(request, movie_id):
     movie = get_object_or_404(Movie, id=movie_id)
-
     ip = get_client_ip(request)
     agent = request.META.get('HTTP_USER_AGENT', '')
     user_email = request.user.email if request.user.is_authenticated else None
     username = request.user.username if request.user.is_authenticated else None
 
-    # ✅ Save download log (TypeError fix)
     DownloadLog.objects.create(
-        movie_title=movie.title,   # sirf ye rakho
+        movie_title=movie.title,
         ip_address=ip,
         user_agent=agent,
         user_email=user_email,
         username=username,
         download_time=timezone.now()
     )
-
-    # ✅ Redirect to actual download link
     return redirect(movie.download_link)
 
-# ------------------------
-# PWA Install Tracking
-# ------------------------
 @csrf_exempt
 def track_install(request):
     if request.method == "POST":
@@ -110,9 +90,6 @@ def track_install(request):
             return JsonResponse({'status': 'error', 'message': str(e)})
     return JsonResponse({'status': 'fail'})
 
-# ------------------------
-# AJAX endpoint for live stats
-# ------------------------
 @require_GET
 def get_install_stats(request):
     total_installs = InstallTracker.objects.count()
@@ -123,7 +100,26 @@ def get_install_stats(request):
     for r in recent_installs:
         r['installed_at'] = r['installed_at'].strftime('%d %b %Y %H:%M')
 
-    return JsonResponse({
-        'total_installs': total_installs,
-        'recent_installs': recent_installs
-    })
+    return JsonResponse({'total_installs': total_installs, 'recent_installs': recent_installs})
+
+# ------------------------
+# ✅ Contact Form View
+# ------------------------
+def contact_view(request):
+    if request.method == "POST":
+        name = request.POST.get("name")
+        email = request.POST.get("email")
+        message = request.POST.get("message")
+
+        subject = f"📩 New Contact Form Message from {name}"
+        body = f"Name: {name}\nEmail: {email}\nMessage:\n{message}"
+
+        try:
+            send_mail(subject, body, settings.DEFAULT_FROM_EMAIL, [settings.EMAIL_HOST_USER])
+            messages.success(request, "✅ Message sent successfully! We’ll contact you soon.")
+        except Exception as e:
+            messages.error(request, f"❌ Error sending message: {e}")
+
+        return redirect("contact")
+
+    return render(request, "contact.html")

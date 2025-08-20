@@ -121,7 +121,7 @@ cloudinary.config(
 )
 
 # ✅ Email Configuration (Contact Form)
-EMAIL_BACKEND = config('EMAIL_BACKEND')  # No default, must be in .env or Render env
+EMAIL_BACKEND = config('EMAIL_BACKEND', default='django.core.mail.backends.smtp.EmailBackend')
 EMAIL_HOST = config('EMAIL_HOST')
 EMAIL_PORT = config('EMAIL_PORT', cast=int)
 EMAIL_USE_TLS = config('EMAIL_USE_TLS', cast=bool)

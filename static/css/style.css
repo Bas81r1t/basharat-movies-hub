@@ -73,16 +73,24 @@ body {
   color: white;
   border-radius: 12px;
   overflow: hidden;
-  transition: transform 0.3s ease;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
   display: flex;
   flex-direction: column;
   height: 100%; /* Make cards equal height in grid */
   border: 1px solid rgba(255, 255, 255, 0.08); /* clean border only */
 }
 
+/* 🎯 Clean Hover Effect */
+.card:hover,
+.movie-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.25);
+}
+
+/* 🎬 Card Image */
 .card-img-top {
   object-fit: cover;
-  height: 250px;  /* Adjust height for mobile-friendly */
+  height: 250px;
   width: 100%;
   border-top-left-radius: 12px;
   border-top-right-radius: 12px;
@@ -90,7 +98,7 @@ body {
 }
 
 .card-body {
-  flex-grow: 1; /* Makes card body fill the remaining space */
+  flex-grow: 1;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -104,8 +112,6 @@ body {
   margin: 0;
   color: inherit;
 }
-
-/* ❌ Hover effect removed (no shadow, no animation) */
 
 /* 🎬 Heading Animation */
 .animated-heading {

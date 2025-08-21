@@ -18,6 +18,19 @@
   <link rel="apple-touch-icon" sizes="192x192" href="{% static 'images/icon.png' %}">
   <link rel="apple-touch-icon" sizes="512x512" href="{% static 'images/icon.png' %}">
 
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+    }
+    body {
+      display: flex;
+      flex-direction: column;
+    }
+    main {
+      flex: 1; /* content jitna ho utna stretch hoga */
+    }
+  </style>
 </head>
 
 <body>
@@ -47,12 +60,12 @@
   </nav>
 
   <!-- 🔽 Page Content -->
-  <div class="container mt-4 mb-5">
+  <main class="container my-4">
     {% block content %}{% endblock %}
-  </div>
+  </main>
 
   <!-- 🌙 Footer -->
-  <footer class="bg-dark text-light text-center p-4 mt-4">
+  <footer class="bg-dark text-light text-center p-4 mt-auto">
     <p class="mb-1">© 2025 Basharat Movies Hub | Made ❤️ by Basharat</p>
 
     <!-- 📌 Legal Disclaimer -->

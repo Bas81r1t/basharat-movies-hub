@@ -8,6 +8,9 @@ body {
 
   /* 👣 Extra spacing to prevent footer overlap */
   padding-bottom: 70px;
+
+  /* ✨ Smooth scroll */
+  scroll-behavior: smooth;
 }
 
 @keyframes gradientMove {
@@ -70,11 +73,11 @@ body {
   color: white;
   border-radius: 12px;
   overflow: hidden;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-  box-shadow: 0 0 8px rgba(0, 255, 255, 0.1); /* base glow */
+  transition: transform 0.3s ease;
   display: flex;
   flex-direction: column;
   height: 100%; /* Make cards equal height in grid */
+  border: 1px solid rgba(255, 255, 255, 0.08); /* clean border only */
 }
 
 .card-img-top {
@@ -102,12 +105,7 @@ body {
   color: inherit;
 }
 
-.card:hover,
-.movie-card:hover {
-  transform: translateY(-8px) scale(1.05);
-  box-shadow: 0 0 30px rgba(0, 255, 255, 0.6), 0 10px 30px rgba(0, 0, 0, 0.4);
-  cursor: pointer;
-}
+/* ❌ Hover effect removed (no shadow, no animation) */
 
 /* 🎬 Heading Animation */
 .animated-heading {

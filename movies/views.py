@@ -23,7 +23,7 @@ def extract_episode_number(title):
     return float('inf')
 
 # ------------------------
-# Existing Views
+# Home Page
 # ------------------------
 def home(request):
     query = request.GET.get('q')
@@ -45,22 +45,34 @@ def home(request):
         'unlisted_movies': unlisted_movies
     })
 
+# ------------------------
+# Playlist Details
+# ------------------------
 def playlist_detail(request, playlist_id):
     playlist = get_object_or_404(Playlist, id=playlist_id)
     movies = Movie.objects.filter(playlist=playlist)
     movies = sorted(movies, key=lambda m: extract_episode_number(m.title))
     return render(request, 'playlist_detail.html', {'playlist': playlist, 'movies': movies})
 
+# ------------------------
+# Movie Detail Page
+# ------------------------
 def movie_detail(request, movie_id):
     movie = get_object_or_404(Movie, id=movie_id)
     return render(request, 'movie_detail.html', {'movie': movie})
 
+# ------------------------
+# Helper: Get Client IP
+# ------------------------
 def get_client_ip(request):
     x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
     if x_forwarded_for:
         return x_forwarded_for.split(',')[0]
     return request.META.get('REMOTE_ADDR')
 
+# ------------------------
+# Download Movie + Log
+# ------------------------
 def download_movie(request, movie_id):
     movie = get_object_or_404(Movie, id=movie_id)
     ip = get_client_ip(request)
@@ -78,32 +90,47 @@ def download_movie(request, movie_id):
     )
     return redirect(movie.download_link)
 
+# ------------------------
+# PWA Install/Delete Tracking
+# ------------------------
 @csrf_exempt
 def track_install(request):
     if request.method == "POST":
         try:
             data = json.loads(request.body)
-            device = data.get('device', 'Unknown device')
-            InstallTracker.objects.create(device_info=device)
-            return JsonResponse({'status': 'success'})
+            device = data.get("device", "Unknown device")
+            action = data.get("action", "install")
+
+            tracker, created = InstallTracker.objects.get_or_create(device_info=device)
+
+            if action == "install":
+                tracker.installed = True
+                tracker.install_count += 1
+                tracker.last_action = "install"
+
+            elif action == "delete":
+                tracker.installed = False
+                tracker.delete_count += 1
+                tracker.last_action = "delete"
+
+            tracker.save()
+            return JsonResponse({"status": "success"})
         except Exception as e:
-            return JsonResponse({'status': 'error', 'message': str(e)})
-    return JsonResponse({'status': 'fail'})
+            return JsonResponse({"status": "error", "message": str(e)})
+    return JsonResponse({"status": "fail"})
 
 @require_GET
 def get_install_stats(request):
-    total_installs = InstallTracker.objects.count()
-    recent_installs = list(
-        InstallTracker.objects.order_by('-installed_at')[:5]
-        .values('device_info', 'installed_at')
-    )
-    for r in recent_installs:
-        r['installed_at'] = r['installed_at'].strftime('%d %b %Y %H:%M')
+    total_installs = InstallTracker.objects.filter(installed=True).count()
+    total_deletes = InstallTracker.objects.filter(last_action="delete").count()
 
-    return JsonResponse({'total_installs': total_installs, 'recent_installs': recent_installs})
+    return JsonResponse({
+        "installs": total_installs,
+        "deletes": total_deletes,
+    })
 
 # ------------------------
-# ✅ Contact Form View
+# Contact Form
 # ------------------------
 def contact_view(request):
     if request.method == "POST":
@@ -118,14 +145,14 @@ def contact_view(request):
             send_mail(
                 subject,
                 body,
-                settings.EMAIL_HOST_USER,  # sender (gmail app password wala)
-                [settings.EMAIL_HOST_USER],  # receiver (apna email)
+                settings.EMAIL_HOST_USER,
+                [settings.EMAIL_HOST_USER],
                 fail_silently=False
             )
             messages.success(request, "✅ Message sent successfully! We’ll contact you soon.")
         except Exception as e:
             messages.error(request, "❌ Could not send message. Please try again later.")
-            print(f"Contact form email error: {e}")  # Debugging Render logs
+            print(f"Contact form email error: {e}")
 
         return redirect("contact")
 

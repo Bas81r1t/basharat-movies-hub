@@ -15,7 +15,7 @@ class MyAdminSite(admin.AdminSite):
     def index(self, request, extra_context=None):
         # ---- Top stats (CURRENT state) ----
         total_installs = InstallTracker.objects.filter(installed=True).count()   # ✅ currently installed devices
-        total_deletes = InstallTracker.objects.filter(installed=False).count()  # ✅ currently uninstalled devices
+        total_deletes = InstallTracker.objects.filter(last_action="delete").count()  # ✅ uninstall actions
         total_movies = Movie.objects.count()
         total_users = User.objects.count()
         total_downloads = DownloadLog.objects.count()

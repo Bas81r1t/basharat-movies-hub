@@ -107,11 +107,13 @@ def track_install(request):
                 tracker.installed = True
                 tracker.install_count += 1
                 tracker.last_action = "install"
+                tracker.delete_count = 0  # ✅ reset deletes if reinstalled
 
             elif action == "delete":
-                tracker.installed = False
-                tracker.delete_count += 1
-                tracker.last_action = "delete"
+                if tracker.installed:  # ✅ only count delete if it was installed before
+                    tracker.installed = False
+                    tracker.delete_count += 1
+                    tracker.last_action = "delete"
 
             tracker.save()
             return JsonResponse({"status": "success"})

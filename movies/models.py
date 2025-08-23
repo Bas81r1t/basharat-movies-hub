@@ -38,7 +38,7 @@ class DownloadLog(models.Model):
 
 # ✅ New Model for PWA Install & Delete Tracking
 class InstallTracker(models.Model):
-    device_info = models.TextField()  # e.g. "Chrome on Windows"
+    device_info = models.TextField(default="Unknown Device", blank=True, null=True)  # ✅ device identification
     installed = models.BooleanField(default=False)  # ✅ current status
     install_count = models.PositiveIntegerField(default=0)  # ✅ total installs
     delete_count = models.PositiveIntegerField(default=0)  # ✅ total deletes
@@ -53,4 +53,4 @@ class InstallTracker(models.Model):
 
     def __str__(self):
         status = "✅ Installed" if self.installed else "❌ Deleted"
-        return f"{self.device_info[:30]}... | {status} | Installs: {self.install_count}, Deletes: {self.delete_count}"
+        return f"{(self.device_info or 'Unknown')[:30]}... | {status} | Installs: {self.install_count}, Deletes: {self.delete_count}"

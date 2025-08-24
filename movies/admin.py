@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth import get_user_model
 from django.db.models import Count
-from .models import Playlist, Movie, DownloadLog, InstallTracker
+from .models import Playlist, Movie, DownloadLog, InstallTracker, Category
 
 User = get_user_model()
 
@@ -59,9 +59,9 @@ admin_site = MyAdminSite(name="myadmin")
 @admin.register(Movie, site=admin_site)
 class MovieAdmin(admin.ModelAdmin):
     exclude = ("udrop_link",)
-    list_display = ('title', 'playlist', 'poster_tag')
+    list_display = ('title', 'category', 'playlist', 'poster_tag')
     search_fields = ('title',)
-    list_filter = ('playlist',)
+    list_filter = ('category', 'playlist',)
 
     def poster_tag(self, obj):
         if obj.poster:
@@ -101,3 +101,9 @@ class InstallTrackerAdmin(admin.ModelAdmin):
     list_filter = ("last_action", "updated_at", "created_at")
     ordering = ("-updated_at",)
     search_fields = ("device_id",)
+
+# नया Category मॉडल रजिस्टर करो
+@admin.register(Category, site=admin_site)
+class CategoryAdmin(admin.ModelAdmin):
+    list_display = ['name']
+    search_fields = ['name']

@@ -1,4 +1,3 @@
-# movies/urls.py
 from django.urls import path
 from .views import (
     home,
@@ -9,12 +8,14 @@ from .views import (
     track_uninstall,
     get_install_stats,
     contact_view,
+    category_detail,  # नया view import किया
 )
 
 urlpatterns = [
     # Website pages
     path("", home, name="home"),
     path("playlist/<int:playlist_id>/", playlist_detail, name="playlist_detail"),
+    path("category/<int:category_id>/", category_detail, name="category_detail"), # नया URL pattern जोड़ा
     path("movie/<int:movie_id>/", movie_detail, name="movie_detail"),
     path("download/<int:movie_id>/", download_movie, name="download_movie"),
 

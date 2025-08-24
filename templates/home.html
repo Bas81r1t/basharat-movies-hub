@@ -4,74 +4,81 @@
 
 {% block content %}
 <div class="container mt-4">
+    <form method="get" action="" class="mb-4">
+        <div class="input-group">
+            <input type="text" name="q" class="form-control" placeholder="Search movies..." value="{{ query|default:'' }}">
+            <button type="submit" class="btn btn-primary">Search</button>
+        </div>
+    </form>
 
-  <!-- 🔍 Search Bar -->
-  <form method="get" action="" class="mb-4">
-    <div class="input-group">
-      <input type="text" name="q" class="form-control" placeholder="Search movies..." value="{{ query|default:'' }}">
-      <button type="submit" class="btn btn-primary">Search</button>
-    </div>
-  </form>
-
-  {% if query %}
+    {% if query %}
     <h4>Search Results for: "{{ query }}"</h4>
 
     {% if not_found %}
-      <div class="alert alert-warning mt-3">😢 Sorry! Koi movie nahi mili.</div>
+    <div class="alert alert-warning mt-3">😢 Sorry! Koi movie nahi mili.</div>
     {% endif %}
 
     <div class="row mt-3">
-      {% for movie in movies %}
-        <div class="col-6 col-sm-4 col-md-3 mb-3">  {# Responsive cols for movies #}
-          <div class="card movie-card h-100">
-            <a href="{% url 'movie_detail' movie.id %}" class="title-link">
-              {% cloudinary movie.poster class="card-img-top" alt=movie.title %}
-              <div class="card-body text-center">
-                <h5 class="card-title">{{ movie.title }}</h5>
-              </div>
-            </a>
-          </div>
+        {% for movie in movies %}
+        <div class="col-6 col-sm-4 col-md-3 mb-3"> 
+            <div class="card movie-card h-100">
+                <a href="{% url 'movie_detail' movie.id %}" class="title-link">
+                    {% cloudinary movie.poster class="card-img-top" alt=movie.title %}
+                    <div class="card-body text-center">
+                        <h5 class="card-title">{{ movie.title }}</h5>
+                    </div>
+                </a>
+            </div>
         </div>
-      {% endfor %}
+        {% endfor %}
     </div>
 
-  {% else %}
-    <h2 class="mb-3">🎬 Playlists</h2>
+    {% else %}
+    <h2 class="mb-3">Categories</h2>
+    <div class="d-flex flex-wrap mb-4 gap-2">
+        {% for category in categories %}
+            <a href="{% url 'category_detail' category.id %}" style="background-color: #2e3032; color: #ffffff; padding: 8px 12px; border-radius: 4px; text-decoration: none; font-weight: bold; border: 1px solid #4a4d50;">
+                {{ category.name }}
+            </a>
+        {% endfor %}
+    </div>
+    
+    <h2 class="mt-5 mb-3">🎬 Playlists</h2>
 
     <div class="row">
-      {% for playlist in playlists %}
-        <div class="col-6 col-sm-4 col-md-3 mb-3">  {# Responsive cols for playlists, equal size as movies #}
-          <div class="card movie-card h-100">
-            <a href="{% url 'playlist_detail' playlist.id %}" class="title-link">
-              {% cloudinary playlist.banner class="card-img-top" alt=playlist.name %}
-              <div class="card-body text-center">
-                <h5 class="card-title">{{ playlist.name }}</h5>
-              </div>
-            </a>
-          </div>
+        {% for playlist in playlists %}
+        <div class="col-6 col-sm-4 col-md-3 mb-3">
+            <div class="card movie-card h-100">
+                <a href="{% url 'playlist_detail' playlist.id %}" class="title-link">
+                    {% cloudinary playlist.banner class="card-img-top" alt=playlist.name %}
+                    <div class="card-body text-center">
+                        <h5 class="card-title">{{ playlist.name }}</h5>
+                    </div>
+                </a>
+            </div>
         </div>
-      {% endfor %}
+        {% endfor %}
     </div>
 
     {% if unlisted_movies %}
-      <h3 class="mt-5 fw-bold text-center animated-heading">
+    <h3 class="mt-5 fw-bold text-center animated-heading">
         📥 Uploads Movies <small style="color: #cccccc;">(No Playlist)</small>
-      </h3>
-      <div class="row mt-4">
+    </h3>
+    <div class="row mt-4">
         {% for movie in unlisted_movies %}
-          <div class="col-6 col-sm-4 col-md-3 mb-4">  {# Responsive cols for uploads #}
+        <div class="col-6 col-sm-4 col-md-3 mb-4">
             <div class="card movie-card h-100">
-              <a href="{% url 'movie_detail' movie.id %}" class="title-link">
-                {% cloudinary movie.poster class="card-img-top" alt=movie.title %}
-                <div class="card-body text-center">
-                  <h5 class="card-title">{{ movie.title }}</h5>
-                </div>
-              </a>
+                <a href="{% url 'movie_detail' movie.id %}" class="title-link">
+                    {% cloudinary movie.poster class="card-img-top" alt=movie.title %}
+                    <div class="card-body text-center">
+                        <h5 class="card-title">{{ movie.title }}</h5>
+                    </div>
+                </a>
             </div>
-          </div>
+        </div>
         {% endfor %}
-      </div>
+    </div>
     {% endif %}
-  {% endif %}
+    {% endif %}
 </div>
 {% endblock %}

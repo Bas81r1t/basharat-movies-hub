@@ -1,6 +1,5 @@
-# movies/views.py
 from django.shortcuts import render, get_object_or_404, redirect
-from .models import Playlist, Movie, DownloadLog, InstallTracker
+from .models import Playlist, Movie, DownloadLog, InstallTracker, Category
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET, require_POST
@@ -26,6 +25,7 @@ def extract_episode_number(title):
 def home(request):
     query = request.GET.get("q")
     playlists = Playlist.objects.all()
+    categories = Category.objects.all()
     movies = None
     not_found = False
     unlisted_movies = Movie.objects.filter(playlist__isnull=True)
@@ -40,6 +40,7 @@ def home(request):
         "home.html",
         {
             "playlists": playlists,
+            "categories": categories, # यहाँ categories को पास किया गया है
             "movies": movies,
             "query": query,
             "not_found": not_found,
@@ -53,6 +54,12 @@ def playlist_detail(request, playlist_id):
     movies = Movie.objects.filter(playlist=playlist)
     movies = sorted(movies, key=lambda m: extract_episode_number(m.title))
     return render(request, "playlist_detail.html", {"playlist": playlist, "movies": movies})
+
+
+def category_detail(request, category_id):
+    category = get_object_or_404(Category, id=category_id)
+    movies = Movie.objects.filter(category=category)
+    return render(request, "category_detail.html", {"category": category, "movies": movies})
 
 
 def movie_detail(request, movie_id):

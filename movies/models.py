@@ -1,13 +1,20 @@
-# movies/models.py
 from django.db import models
 from django.utils import timezone
 from cloudinary.models import CloudinaryField
 import uuid
 
 
+class Category(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+
+    def __str__(self):
+        return self.name
+
+
 class Playlist(models.Model):
     name = models.CharField(max_length=100)
     banner = CloudinaryField("banner", blank=True, null=True)
+    category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True)
 
     def __str__(self):
         return self.name
@@ -20,6 +27,7 @@ class Movie(models.Model):
     download_link = models.URLField()
     udrop_link = models.URLField(blank=True, null=True)
     playlist = models.ForeignKey(Playlist, on_delete=models.SET_NULL, null=True, blank=True)
+    category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True)
 
     def __str__(self):
         return self.title
@@ -39,8 +47,8 @@ class DownloadLog(models.Model):
 
 
 class InstallTracker(models.Model):
-    device_id = models.UUIDField(default=uuid.uuid4, editable=False)  # ✅ no unique=True
-    device_info = models.CharField(max_length=255, blank=True, null=True)  # ✅ new
+    device_id = models.UUIDField(default=uuid.uuid4, editable=False)
+    device_info = models.CharField(max_length=255, blank=True, null=True)
     install_count = models.PositiveIntegerField(default=0)
     deleted_count = models.PositiveIntegerField(default=0)
     last_action = models.CharField(max_length=20, default="install")

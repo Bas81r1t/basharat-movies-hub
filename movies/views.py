@@ -40,7 +40,7 @@ def home(request):
         "home.html",
         {
             "playlists": playlists,
-            "categories": categories, # यहाँ categories को पास किया गया है
+            "categories": categories,
             "movies": movies,
             "query": query,
             "not_found": not_found,
@@ -58,8 +58,22 @@ def playlist_detail(request, playlist_id):
 
 def category_detail(request, category_id):
     category = get_object_or_404(Category, id=category_id)
-    movies = Movie.objects.filter(category=category)
-    return render(request, "category_detail.html", {"category": category, "movies": movies})
+
+    # Movies and Playlists under this category
+    movies = list(Movie.objects.filter(category=category))
+    playlists = list(Playlist.objects.filter(category=category))
+
+    # Merge both into one list (with type info)
+    items = []
+    for m in movies:
+        items.append({"type": "movie", "obj": m})
+    for p in playlists:
+        items.append({"type": "playlist", "obj": p})
+
+    return render(request, "category_detail.html", {
+        "category": category,
+        "items": items
+    })
 
 
 def movie_detail(request, movie_id):
@@ -113,7 +127,6 @@ def track_install(request):
             tracker.install_count += 1
             tracker.deleted_count = max(0, tracker.deleted_count - 1)
 
-        # Save/refresh device_info if provided
         if device_info:
             tracker.device_info = device_info[:255]
 
@@ -142,7 +155,6 @@ def track_uninstall(request):
                 tracker.deleted_count += 1
                 tracker.install_count = max(0, tracker.install_count - 1)
                 tracker.last_action = "uninstall"
-                # Optionally update device_info if sent
                 device_info = (data.get("device_info") or "")[:255]
                 if device_info:
                     tracker.device_info = device_info

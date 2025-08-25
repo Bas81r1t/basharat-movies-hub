@@ -7,15 +7,49 @@
     <h1 class="mb-4">{{ category.name }}</h1>
     
     <div class="row">
-        {% for movie in movies %}
+        {% for item in items %}
         <div class="col-6 col-sm-4 col-md-3 mb-3">
             <div class="card movie-card h-100">
-                <a href="{% url 'movie_detail' movie.id %}" class="title-link">
-                    {% cloudinary movie.poster class="card-img-top" alt=movie.title %}
-                    <div class="card-body text-center">
-                        <h5 class="card-title">{{ movie.title }}</h5>
-                    </div>
-                </a>
+
+                {% if item.type == "movie" %}
+                    <a href="{% url 'movie_detail' item.obj.id %}" class="title-link">
+                        {% if item.obj.poster %}
+                            {% cloudinary item.obj.poster class="card-img-top" alt=item.obj.title %}
+                        {% else %}
+                            <img src="{% static 'images/default.jpg' %}" class="card-img-top" alt="No Image">
+                        {% endif %}
+                        <div class="card-body text-center">
+                            <h6 class="card-title">
+                                {% if item.obj.title %}
+                                    {{ item.obj.title }}
+                                {% else %}
+                                    No Title
+                                {% endif %}
+                            </h6>
+                        </div>
+                    </a>
+
+                {% elif item.type == "playlist" %}
+                    <a href="{% url 'playlist_detail' item.obj.id %}" class="title-link">
+                        {% if item.obj.banner %}
+                            {% cloudinary item.obj.banner class="card-img-top" alt=item.obj.name %}
+                        {% elif item.obj.poster %}
+                            {% cloudinary item.obj.poster class="card-img-top" alt=item.obj.name %}
+                        {% else %}
+                            <img src="{% static 'images/default-playlist.jpg' %}" class="card-img-top" alt="No Image">
+                        {% endif %}
+                        <div class="card-body text-center">
+                            <h6 class="card-title">
+                                {% if item.obj.name %}
+                                    {{ item.obj.name }}
+                                {% else %}
+                                    Untitled Playlist
+                                {% endif %}
+                            </h6>
+                        </div>
+                    </a>
+                {% endif %}
+
             </div>
         </div>
         {% endfor %}

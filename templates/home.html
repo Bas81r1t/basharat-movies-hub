@@ -35,13 +35,17 @@
 
     {% else %}
     <h2 class="mb-3">Categories</h2>
-    <div class="d-flex flex-wrap mb-4 gap-2">
-        {% for category in categories %}
-            <a href="{% url 'category_detail' category.id %}" style="background-color: #2e3032; color: #ffffff; padding: 8px 12px; border-radius: 4px; text-decoration: none; font-weight: bold; border: 1px solid #4a4d50;">
-                {{ category.name }}
-            </a>
-        {% endfor %}
-    </div>
+  <div class="d-flex flex-wrap mb-4 gap-2">
+    {% for category in categories %}
+        <a href="{% url 'category_detail' category.id %}"
+           style="background-color: #2e3032; color: #ffffff; padding: 8px 12px; border-radius: 4px; text-decoration: none; font-weight: bold; border: 1px solid #4a4d50;"
+           onmouseover="this.style.backgroundColor='#4a4d50'; this.style.borderColor='#6c757d'; this.style.transform='scale(1.05)'; this.style.boxShadow='0 4px 15px rgba(0,0,0,0.3)';"
+           onmouseout="this.style.backgroundColor='#2e3032'; this.style.borderColor='#4a4d50'; this.style.transform='scale(1)'; this.style.boxShadow='none';">
+            {{ category.name }}
+        </a>
+    {% endfor %}
+</div>
+
     
     <h2 class="mt-5 mb-3">🎬 Playlists</h2>
 

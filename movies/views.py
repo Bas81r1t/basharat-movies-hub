@@ -31,9 +31,16 @@ def home(request):
     unlisted_movies = Movie.objects.filter(playlist__isnull=True)
 
     if query:
-        movies = Movie.objects.filter(title__icontains=query)
-        if not movies.exists():
-            not_found = True
+        # Pehle playlist search karega
+        playlists = Playlist.objects.filter(name__icontains=query)
+
+        # Agar playlist nahi mili to movie search karega
+        if not playlists.exists():
+            movies = Movie.objects.filter(title__icontains=query)
+
+            # Agar movie bhi nahi mili to not_found
+            if not movies.exists():
+                not_found = True
 
     return render(
         request,
@@ -63,6 +70,12 @@ def category_detail(request, category_id):
     movies = list(Movie.objects.filter(category=category))
     playlists = list(Playlist.objects.filter(category=category))
 
+    # ✅ Search filter
+    query = request.GET.get("q")
+    if query:
+        movies = [m for m in movies if query.lower() in m.title.lower()]
+        playlists = [p for p in playlists if query.lower() in p.name.lower()]
+
     # Merge both into one list (with type info)
     items = []
     for m in movies:
@@ -70,9 +83,13 @@ def category_detail(request, category_id):
     for p in playlists:
         items.append({"type": "playlist", "obj": p})
 
+    # ✅ Sorting: movies first then playlists
+    items.sort(key=lambda x: (0 if x["type"] == "movie" else 1, str(x["obj"])))
+
     return render(request, "category_detail.html", {
         "category": category,
-        "items": items
+        "items": items,
+        "query": query,
     })
 
 

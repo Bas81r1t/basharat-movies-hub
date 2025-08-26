@@ -4,55 +4,74 @@
 
 {% block content %}
 <div class="container mt-4">
-    <h1 class="mb-4">{{ category.name }}</h1>
-    
-    <div class="row">
-        {% for item in items %}
-        <div class="col-6 col-sm-4 col-md-3 mb-3">
-            <div class="card movie-card h-100">
 
-                {% if item.type == "movie" %}
-                    <a href="{% url 'movie_detail' item.obj.id %}" class="title-link">
-                        {% if item.obj.poster %}
-                            {% cloudinary item.obj.poster class="card-img-top" alt=item.obj.title %}
-                        {% else %}
-                            <img src="{% static 'images/default.jpg' %}" class="card-img-top" alt="No Image">
-                        {% endif %}
-                        <div class="card-body text-center">
-                            <h6 class="card-title">
-                                {% if item.obj.title %}
-                                    {{ item.obj.title }}
-                                {% else %}
-                                    No Title
-                                {% endif %}
-                            </h6>
-                        </div>
-                    </a>
-
-                {% elif item.type == "playlist" %}
-                    <a href="{% url 'playlist_detail' item.obj.id %}" class="title-link">
-                        {% if item.obj.banner %}
-                            {% cloudinary item.obj.banner class="card-img-top" alt=item.obj.name %}
-                        {% elif item.obj.poster %}
-                            {% cloudinary item.obj.poster class="card-img-top" alt=item.obj.name %}
-                        {% else %}
-                            <img src="{% static 'images/default-playlist.jpg' %}" class="card-img-top" alt="No Image">
-                        {% endif %}
-                        <div class="card-body text-center">
-                            <h6 class="card-title">
-                                {% if item.obj.name %}
-                                    {{ item.obj.name }}
-                                {% else %}
-                                    Untitled Playlist
-                                {% endif %}
-                            </h6>
-                        </div>
-                    </a>
-                {% endif %}
-
-            </div>
+    <!-- 🔍 Category Search Bar (ab sabse upar) -->
+    <form method="get" action="">
+        <div class="input-group mb-4">
+            <input type="text" name="q" class="form-control" placeholder="Search movies in {{ category.name }}..." value="{{ request.GET.q }}">
+            <button class="btn btn-primary" type="submit">Search</button>
         </div>
-        {% endfor %}
+    </form>
+
+    <!-- 📌 Category Title ab search bar ke niche -->
+    <h1 class="mb-4">{{ category.name }}</h1>
+
+    <div class="row">
+        {% if items %}
+            {% for item in items %}
+            <div class="col-6 col-sm-4 col-md-3 mb-3">
+                <div class="card movie-card h-100">
+
+                    {% if item.type == "movie" %}
+                        <a href="{% url 'movie_detail' item.obj.id %}" class="title-link">
+                            {% if item.obj.poster %}
+                                {% cloudinary item.obj.poster class="card-img-top" alt=item.obj.title %}
+                            {% else %}
+                                <img src="{% static 'images/default.jpg' %}" class="card-img-top" alt="No Image">
+                            {% endif %}
+                            <div class="card-body text-center">
+                                <h6 class="card-title">
+                                    {% if item.obj.title %}
+                                        {{ item.obj.title }}
+                                    {% else %}
+                                        No Title
+                                    {% endif %}
+                                </h6>
+                            </div>
+                        </a>
+
+                    {% elif item.type == "playlist" %}
+                        <a href="{% url 'playlist_detail' item.obj.id %}" class="title-link">
+                            {% if item.obj.banner %}
+                                {% cloudinary item.obj.banner class="card-img-top" alt=item.obj.name %}
+                            {% elif item.obj.poster %}
+                                {% cloudinary item.obj.poster class="card-img-top" alt=item.obj.name %}
+                            {% else %}
+                                <img src="{% static 'images/default-playlist.jpg' %}" class="card-img-top" alt="No Image">
+                            {% endif %}
+                            <div class="card-body text-center">
+                                <h6 class="card-title">
+                                    {% if item.obj.name %}
+                                        {{ item.obj.name }}
+                                    {% else %}
+                                        Untitled Playlist
+                                    {% endif %}
+                                </h6>
+                            </div>
+                        </a>
+                    {% endif %}
+
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <!-- ❌ Agar koi movie ya playlist nahi mile -->
+            <div class="col-12">
+                <div class="alert alert-warning text-center" role="alert">
+                    😢 Sorry! Koi movie nahi mili.
+                </div>
+            </div>
+        {% endif %}
     </div>
 </div>
 {% endblock %}

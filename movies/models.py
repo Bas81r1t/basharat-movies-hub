@@ -47,7 +47,7 @@ class DownloadLog(models.Model):
 
 
 class InstallTracker(models.Model):
-    device_id = models.UUIDField(default=uuid.uuid4, editable=False)
+    device_id = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     device_info = models.CharField(max_length=255, blank=True, null=True)
     install_count = models.PositiveIntegerField(default=0)
     deleted_count = models.PositiveIntegerField(default=0)
@@ -55,5 +55,23 @@ class InstallTracker(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    def install(self):
+        """New install or reinstall"""
+        self.install_count = 1
+        self.deleted_count = 0
+        self.last_action = "install"
+        self.save()
+
+    def uninstall(self):
+        """App uninstall (current state)"""
+        self.install_count = 0
+        self.deleted_count = 1
+        self.last_action = "uninstall"
+        self.save()
+
+    def reinstall(self):
+        """Reinstall after uninstall"""
+        self.install()
+
     def __str__(self):
-        return f"Device ID: {self.device_id}"
+        return f"Device {self.device_id} - {self.last_action}"

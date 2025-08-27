@@ -5,7 +5,6 @@ from .views import (
     movie_detail,
     download_movie,
     track_install,
-    track_uninstall,
     get_install_stats,
     contact_view,
     category_detail,  # नया view import किया
@@ -22,9 +21,8 @@ urlpatterns = [
     # Contact
     path("contact/", contact_view, name="contact"),
 
-    # PWA Install & Uninstall Tracking
+    # PWA Install Tracking (Uninstall removed)
     path("track-install/", track_install, name="track_install"),
-    path("track-uninstall/", track_uninstall, name="track_uninstall"),
 
     # AJAX endpoint
     path("ajax/install-stats/", get_install_stats, name="ajax_install_stats"),

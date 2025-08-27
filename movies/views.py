@@ -7,6 +7,7 @@ from django.utils import timezone
 from django.core.mail import send_mail
 from django.conf import settings
 from django.contrib import messages
+from django.db.models import Sum
 import json
 import re
 import uuid
@@ -31,14 +32,9 @@ def home(request):
     unlisted_movies = Movie.objects.filter(playlist__isnull=True)
 
     if query:
-        # Pehle playlist search karega
         playlists = Playlist.objects.filter(name__icontains=query)
-
-        # Agar playlist nahi mili to movie search karega
         if not playlists.exists():
             movies = Movie.objects.filter(title__icontains=query)
-
-            # Agar movie bhi nahi mili to not_found
             if not movies.exists():
                 not_found = True
 
@@ -65,25 +61,20 @@ def playlist_detail(request, playlist_id):
 
 def category_detail(request, category_id):
     category = get_object_or_404(Category, id=category_id)
-
-    # Movies and Playlists under this category
     movies = list(Movie.objects.filter(category=category))
     playlists = list(Playlist.objects.filter(category=category))
 
-    # ✅ Search filter
     query = request.GET.get("q")
     if query:
         movies = [m for m in movies if query.lower() in m.title.lower()]
         playlists = [p for p in playlists if query.lower() in p.name.lower()]
 
-    # Merge both into one list (with type info)
     items = []
     for m in movies:
         items.append({"type": "movie", "obj": m})
     for p in playlists:
         items.append({"type": "playlist", "obj": p})
 
-    # ✅ Sorting: movies first then playlists
     items.sort(key=lambda x: (0 if x["type"] == "movie" else 1, str(x["obj"])))
 
     return render(request, "category_detail.html", {
@@ -120,6 +111,8 @@ def download_movie(request, movie_id):
         username=username,
         download_time=timezone.now(),
     )
+
+    # ✅ Install tracking via device UUID from JS (POST request will handle it)
     return redirect(movie.download_link)
 
 
@@ -129,67 +122,32 @@ def track_install(request):
     try:
         data = json.loads(request.body or "{}")
         device_id_str = data.get("device_id")
-        device_info = data.get("device_info") or ""
+        device_info = (data.get("device_info") or "")[:255]
 
-        if device_id_str:
-            device_id = uuid.UUID(device_id_str)
-        else:
-            device_id = uuid.uuid4()
-
-        tracker, created = InstallTracker.objects.get_or_create(device_id=device_id)
-
-        if created:
-            tracker.install_count = 1
-        elif tracker.last_action == "uninstall":
-            tracker.install_count += 1
-            tracker.deleted_count = max(0, tracker.deleted_count - 1)
-
-        if device_info:
-            tracker.device_info = device_info[:255]
-
-        tracker.last_action = "install"
-        tracker.save()
-
-        return JsonResponse({"status": "success", "device_id": str(device_id)})
-    except Exception as e:
-        return JsonResponse({"status": "error", "message": str(e)}, status=400)
-
-
-@csrf_exempt
-@require_POST
-def track_uninstall(request):
-    try:
-        data = json.loads(request.body or "{}")
-        device_id_str = data.get("device_id")
         if not device_id_str:
             return JsonResponse({"status": "error", "message": "Device ID missing"}, status=400)
 
         device_id = uuid.UUID(device_id_str)
+        tracker, created = InstallTracker.objects.get_or_create(
+            device_id=device_id,
+            defaults={"device_info": device_info}
+        )
 
-        try:
-            tracker = InstallTracker.objects.get(device_id=device_id)
-            if tracker.last_action == "install":
-                tracker.deleted_count += 1
-                tracker.install_count = max(0, tracker.install_count - 1)
-                tracker.last_action = "uninstall"
-                device_info = (data.get("device_info") or "")[:255]
-                if device_info:
-                    tracker.device_info = device_info
-                tracker.save()
-                return JsonResponse({"status": "success"})
-            else:
-                return JsonResponse({"status": "info", "message": "Already marked as uninstalled"})
-        except InstallTracker.DoesNotExist:
-            return JsonResponse({"status": "info", "message": "Device not found, no action taken"})
+        tracker.install_count = 1
+        tracker.last_action = "install"
+        tracker.device_info = device_info or tracker.device_info
+        tracker.save()
+
+        return JsonResponse({"status": "success", "device_id": str(device_id)})
+
     except Exception as e:
         return JsonResponse({"status": "error", "message": str(e)}, status=400)
 
 
 @require_GET
 def get_install_stats(request):
-    total_installs = InstallTracker.objects.filter(last_action="install").count()
-    total_deletes = InstallTracker.objects.filter(last_action="uninstall").count()
-    return JsonResponse({"installs": total_installs, "deletes": total_deletes})
+    total_installs = InstallTracker.objects.aggregate(total=Sum("install_count"))["total"] or 0
+    return JsonResponse({"installs": total_installs})
 
 
 def contact_view(request):

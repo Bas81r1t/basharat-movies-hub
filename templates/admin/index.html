@@ -81,10 +81,6 @@
         <strong>{{ total_users }}</strong><br>Users
       </div>
       <div class="stats-card">
-        <span>📱</span>
-        <strong>{{ total_installs }}</strong><br>Installs
-      </div>
-      <div class="stats-card">
         <span>🎬</span>
         <strong>{{ total_movies }}</strong><br>Movies
       </div>
@@ -145,18 +141,6 @@
     <!-- 🔹 Custom widgets -->
     <div class="dashboard-widgets">
 
-      <!-- Recent Installs -->
-      <div class="module">
-        <h2><span class="icon">🆕</span>Recent Installs</h2>
-        <ul>
-          {% for install in recent_installs %}
-            <li>{{ install.device_info|truncatechars:40 }} ({{ install.installed_at|localtime|date:"M d, Y h:i A" }})</li>
-          {% empty %}
-            <li>No installs yet</li>
-          {% endfor %}
-        </ul>
-      </div>
-
       <!-- Top 5 Downloaded Movies -->
       <div class="module">
         <h2><span class="icon">🎬</span>Top 5 Downloaded Movies</h2>
@@ -180,6 +164,7 @@
           {% endfor %}
         </ul>
       </div>
+
     </div>
 
   </div>

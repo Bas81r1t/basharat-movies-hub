@@ -74,6 +74,24 @@
       box-shadow: 0 4px 6px rgba(0,0,0,0.1);
       transition: all 0.3s ease-in-out;
     }
+
+    /* Install Button */
+    #install-btn {
+      display: none;
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 1000;
+      padding: 10px 20px;
+      background-color: #4da6ff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    #install-btn:hover {
+      background-color: #1a73e8;
+    }
   </style>
 </head>
 <body>
@@ -127,69 +145,22 @@
       </div>
     </footer>
 
+    <!-- PWA Install Button -->
+    <button id="install-btn">Install App</button>
+
   </div> <!-- #lenis-wrapper -->
 
   <!-- Bootstrap JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-  <!-- Lenis Smooth Scroll (FIXED CDN & order) -->
-  <script src="https://cdn.jsdelivr.net/npm/@studio-freight/lenis@1.0.27/dist/lenis.min.js"></script>
-
   <!-- PWA Install Tracker JS -->
   <script src="{% static 'js/install_tracker.js' %}"></script>
 
-  <script>
-    // Ultra smooth 120Hz easing
-    function iosEasing(t){ return t<0.5 ? 4*t*t*t : 1-Math.pow(-2*t+2,3)/2; }
+  <!-- Custom JS (Smooth scroll + fade-in + navbar shadow) -->
+  <script src="{% static 'js/index.js' %}"></script>
 
-    // ✅ Lenis initialize after loading script
-    const lenis = new Lenis({
-      wrapper: document.querySelector('#lenis-wrapper'),
-      content: document.querySelector('#lenis-wrapper'),
-      duration: 1.2,
-      easing: iosEasing,
-      direction: 'vertical',
-      smooth: true,
-      lerp: 0.12,
-      wheelMultiplier: 1.2,
-      smoothTouch: true
-    });
-
-    function raf(time){
-      lenis.raf(time);
-      requestAnimationFrame(raf);
-    }
-    requestAnimationFrame(raf);
-
-    // Anchor smooth scroll
-    document.querySelectorAll('a[href^="#"]').forEach(anchor=>{
-      anchor.addEventListener('click', e=>{
-        e.preventDefault();
-        const target=document.querySelector(anchor.getAttribute('href'));
-        if(target) lenis.scrollTo(target,{duration:1.2,easing:iosEasing});
-      });
-    });
-
-    // Navbar shadow on scroll
-    window.addEventListener('scroll',()=>{
-      const navbar=document.querySelector('.navbar');
-      if(window.scrollY>50) navbar.classList.add('navbar-scrolled');
-      else navbar.classList.remove('navbar-scrolled');
-    });
-
-    // Section fade-in on scroll
-    const sections = document.querySelectorAll('.scroll-section');
-    function checkSections(){
-      const scrollTop = window.scrollY || window.pageYOffset;
-      sections.forEach(section=>{
-        if(section.offsetTop < scrollTop + window.innerHeight - 100){
-          section.classList.add('active');
-        }
-      });
-    }
-    window.addEventListener('scroll', checkSections);
-    checkSections();
-  </script>
+  <!-- Optional: Remove Lenis reference completely -->
+  <!-- <script src="https://cdn.jsdelivr.net/npm/@studio-freight/lenis@1.0.27/dist/lenis.min.js"></script> -->
 
 </body>
 </html>

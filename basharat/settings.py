@@ -8,7 +8,7 @@ import dj_database_url
 # ✅ Base Directory
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# ✅ Load .env manually (local testing)
+# ✅ Load .env
 load_dotenv(dotenv_path=os.path.join(BASE_DIR, '.env'))
 
 # ✅ Secret Key & Debug
@@ -30,7 +30,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    # Custom apps
+    # Custom app
     'movies.apps.MoviesConfig',
 
     # Cloudinary
@@ -74,17 +74,24 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'basharat.wsgi.application'
 
-# ✅ Database (PostgreSQL external / local fallback)
-DATABASES = {
-    'default': dj_database_url.config(
-        default=config(
-            'DATABASE_URL',
-            default='postgresql://user:password@localhost:5432/dbname'
-        ),
-        conn_max_age=600,
-        ssl_require=True
-    )
-}
+# ✅ Database Configuration
+if DEBUG:
+    # Local SQLite
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
+        }
+    }
+else:
+    # Production PostgreSQL (Neon / Render)
+    DATABASES = {
+        "default": dj_database_url.config(
+            default=config("DATABASE_URL"),
+            conn_max_age=600,
+            ssl_require=True
+        )
+    }
 
 # ✅ Password Validators
 AUTH_PASSWORD_VALIDATORS = [
@@ -124,11 +131,11 @@ cloudinary.config(
     secure=True
 )
 
-# ✅ Email Configuration (fixed)
-EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-EMAIL_HOST = "smtp.gmail.com"
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
+# ✅ Email Configuration
+EMAIL_BACKEND = config('EMAIL_BACKEND', default='django.core.mail.backends.smtp.EmailBackend')
+EMAIL_HOST = config('EMAIL_HOST', default='smtp.gmail.com')
+EMAIL_PORT = config('EMAIL_PORT', cast=int, default=587)
+EMAIL_USE_TLS = config('EMAIL_USE_TLS', cast=bool, default=True)
 EMAIL_HOST_USER = config('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
 DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default=EMAIL_HOST_USER)

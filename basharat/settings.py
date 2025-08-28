@@ -76,6 +76,7 @@ WSGI_APPLICATION = 'basharat.wsgi.application'
 
 # ✅ Database Configuration
 if DEBUG:
+    # Local SQLite
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
@@ -83,6 +84,7 @@ if DEBUG:
         }
     }
 else:
+    # Production PostgreSQL (Neon / Render)
     DATABASES = {
         "default": dj_database_url.config(
             default=config("DATABASE_URL", default=""),
@@ -129,15 +131,15 @@ cloudinary.config(
     secure=True
 )
 
-# ✅ Email Configuration (Local + Deploy safe)
-EMAIL_BACKEND = config('EMAIL_BACKEND', default='django.core.mail.backends.smtp.EmailBackend')
-EMAIL_HOST = config('EMAIL_HOST', default='smtp.gmail.com')
-EMAIL_PORT = config('EMAIL_PORT', cast=int, default=587)
-EMAIL_USE_TLS = config('EMAIL_USE_TLS', cast=bool, default=True)
-EMAIL_USE_SSL = False  # TLS and SSL conflict fix
-EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='bas81r1t@gmail.com')
-EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='dxagtxtqfesjcyof')
-DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default=EMAIL_HOST_USER)
+# ✅ Email Configuration (Deploy + Local safe)
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = os.environ.get('EMAIL_HOST', 'smtp.gmail.com')
+EMAIL_PORT = int(os.environ.get('EMAIL_PORT', 587))
+EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', 'True') == 'True'
+EMAIL_USE_SSL = False
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', 'bas81r1t@gmail.com')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', 'dxagtxtqfesjcyof')
+DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', EMAIL_HOST_USER)
 
 # ✅ Auto Field
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

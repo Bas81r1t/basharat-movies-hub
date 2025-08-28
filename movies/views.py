@@ -163,16 +163,14 @@ def contact_view(request):
             send_mail(
                 subject,
                 body,
-                getattr(settings, "DEFAULT_FROM_EMAIL", settings.EMAIL_HOST_USER),
-                [getattr(settings, "DEFAULT_FROM_EMAIL", settings.EMAIL_HOST_USER)],
+                settings.EMAIL_HOST_USER,
+                [settings.EMAIL_HOST_USER],
                 fail_silently=False
             )
             messages.success(request, "✅ Message sent successfully! We’ll contact you soon.")
-        except BadHeaderError:
-            messages.error(request, "❌ Invalid header detected.")
         except Exception as e:
             messages.error(request, "❌ Could not send message. Please try again later.")
-            print(f"Contact form email error: {e}")
+            print(f"Contact form email error: {e}")  # Logs me error show hoga
 
         return redirect("contact")
 

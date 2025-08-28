@@ -160,17 +160,11 @@ def contact_view(request):
         body = f"Name: {name}\nEmail: {email}\nMessage:\n{message}"
 
         try:
-            send_mail(
-                subject,
-                body,
-                settings.EMAIL_HOST_USER,
-                [settings.EMAIL_HOST_USER],
-                fail_silently=False
-            )
+            send_mail(subject, body, settings.EMAIL_HOST_USER, [settings.EMAIL_HOST_USER], fail_silently=False)
             messages.success(request, "✅ Message sent successfully! We’ll contact you soon.")
         except Exception as e:
             messages.error(request, "❌ Could not send message. Please try again later.")
-            print(f"Contact form email error: {e}")  # Logs me error show hoga
+            print(f"Contact form email error: {e}")
 
         return redirect("contact")
 

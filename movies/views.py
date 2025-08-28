@@ -4,7 +4,7 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET, require_POST
 from django.utils import timezone
-from django.core.mail import send_mail
+from django.core.mail import send_mail, BadHeaderError
 from django.conf import settings
 from django.contrib import messages
 from django.db.models import Sum
@@ -160,8 +160,16 @@ def contact_view(request):
         body = f"Name: {name}\nEmail: {email}\nMessage:\n{message}"
 
         try:
-            send_mail(subject, body, settings.EMAIL_HOST_USER, [settings.EMAIL_HOST_USER], fail_silently=False)
+            send_mail(
+                subject,
+                body,
+                getattr(settings, "DEFAULT_FROM_EMAIL", settings.EMAIL_HOST_USER),
+                [getattr(settings, "DEFAULT_FROM_EMAIL", settings.EMAIL_HOST_USER)],
+                fail_silently=False
+            )
             messages.success(request, "✅ Message sent successfully! We’ll contact you soon.")
+        except BadHeaderError:
+            messages.error(request, "❌ Invalid header detected.")
         except Exception as e:
             messages.error(request, "❌ Could not send message. Please try again later.")
             print(f"Contact form email error: {e}")

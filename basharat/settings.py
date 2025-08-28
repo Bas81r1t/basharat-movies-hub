@@ -8,7 +8,7 @@ import dj_database_url
 # ✅ Base Directory
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# ✅ Load .env
+# ✅ Load .env (local development)
 load_dotenv(dotenv_path=os.path.join(BASE_DIR, '.env'))
 
 # ✅ Secret Key & Debug
@@ -76,7 +76,6 @@ WSGI_APPLICATION = 'basharat.wsgi.application'
 
 # ✅ Database Configuration
 if DEBUG:
-    # Local SQLite
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
@@ -84,10 +83,9 @@ if DEBUG:
         }
     }
 else:
-    # Production PostgreSQL (Neon / Render)
     DATABASES = {
         "default": dj_database_url.config(
-            default=config("DATABASE_URL"),
+            default=config("DATABASE_URL", default=""),
             conn_max_age=600,
             ssl_require=True
         )
@@ -120,24 +118,25 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 # ✅ Cloudinary Configuration
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 CLOUDINARY_STORAGE = {
-    'CLOUD_NAME': config('CLOUD_NAME'),
-    'API_KEY': config('API_KEY'),
-    'API_SECRET': config('API_SECRET'),
+    'CLOUD_NAME': config('CLOUD_NAME', default=''),
+    'API_KEY': config('API_KEY', default=''),
+    'API_SECRET': config('API_SECRET', default=''),
 }
 cloudinary.config(
-    cloud_name=config('CLOUD_NAME'),
-    api_key=config('API_KEY'),
-    api_secret=config('API_SECRET'),
+    cloud_name=config('CLOUD_NAME', default=''),
+    api_key=config('API_KEY', default=''),
+    api_secret=config('API_SECRET', default=''),
     secure=True
 )
 
-# ✅ Email Configuration
+# ✅ Email Configuration (Local + Deploy safe)
 EMAIL_BACKEND = config('EMAIL_BACKEND', default='django.core.mail.backends.smtp.EmailBackend')
 EMAIL_HOST = config('EMAIL_HOST', default='smtp.gmail.com')
 EMAIL_PORT = config('EMAIL_PORT', cast=int, default=587)
 EMAIL_USE_TLS = config('EMAIL_USE_TLS', cast=bool, default=True)
-EMAIL_HOST_USER = config('EMAIL_HOST_USER')
-EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
+EMAIL_USE_SSL = False  # TLS and SSL conflict fix
+EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='bas81r1t@gmail.com')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='dxagtxtqfesjcyof')
 DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default=EMAIL_HOST_USER)
 
 # ✅ Auto Field

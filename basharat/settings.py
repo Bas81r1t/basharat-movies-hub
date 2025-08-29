@@ -13,7 +13,7 @@ load_dotenv(dotenv_path=os.path.join(BASE_DIR, '.env'))
 
 # ✅ Secret Key & Debug
 SECRET_KEY = config('SECRET_KEY', default='django-insecure-default-key')
-DEBUG = config('DEBUG', default=True, cast=bool)
+DEBUG = config('DEBUG', default=False, cast=bool)
 
 ALLOWED_HOSTS = [
     'basharat-movies-hub.onrender.com',
@@ -85,7 +85,7 @@ if DEBUG:
 else:
     DATABASES = {
         "default": dj_database_url.config(
-            default=config("DATABASE_URL", default=""),
+            default=config("DATABASE_URL"),
             conn_max_age=600,
             ssl_require=True
         )
@@ -118,14 +118,14 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 # ✅ Cloudinary Configuration
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 CLOUDINARY_STORAGE = {
-    'CLOUD_NAME': config('CLOUD_NAME', default=''),
-    'API_KEY': config('API_KEY', default=''),
-    'API_SECRET': config('API_SECRET', default=''),
+    'CLOUD_NAME': config('CLOUD_NAME'),
+    'API_KEY': config('API_KEY'),
+    'API_SECRET': config('API_SECRET'),
 }
 cloudinary.config(
-    cloud_name=config('CLOUD_NAME', default=''),
-    api_key=config('API_KEY', default=''),
-    api_secret=config('API_SECRET', default=''),
+    cloud_name=config('CLOUD_NAME'),
+    api_key=config('API_KEY'),
+    api_secret=config('API_SECRET'),
     secure=True
 )
 

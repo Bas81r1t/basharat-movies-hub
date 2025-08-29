@@ -1,26 +1,32 @@
 services:
-  - type: web
-    name: basharat-movies-hub
-    env: python
-    buildCommand: |
-      pip install -r requirements.txt
-      python manage.py collectstatic --noinput
-    startCommand: gunicorn basharat.wsgi:application
-    envVars:
-      - key: SECRET_KEY
-        value: django-insecure--0#lkljw^@ia8n-szf$twpo2jvhcz=ri#nj6=ai3ofm$$7ed3b
-      - key: CLOUD_NAME
-        value: dweltjcfs
-      - key: API_KEY
-        value: 589233271357927
-      - key: API_SECRET
-        value: OakuyzEtiypHUy9GHBxzIk6jyqY
-      - key: DATABASE_URL
-        value: postgresql://basharat_db_user:7EGzymVofOkSDG6NgeR6jU2fwDfB0uIo@dpg-d23qsgidbo4c7385piqg-a.oregon-postgres.render.com/basharat_db
 
-  - type: worker
-    name: gofile-auto-refresh-worker
-    env: python
-    buildCommand: pip install -r auto_task_flask/requirements.txt
-    startCommand: bash auto_task_flask/start.sh
-    plan: free
+type: web
+name: basharat-movies-hub
+env: python
+buildCommand: |
+pip install -r requirements.txt
+python manage.py collectstatic --noinput
+startCommand: gunicorn basharat.wsgi:application
+envVars:
+
+key: SECRET_KEY
+value: django-insecure--0#lkljw^@ia8n-szf$twpo2jvhcz=ri#nj6=ai3ofm$$7ed3b
+
+key: CLOUD_NAME
+value: dweltjcfs
+
+key: API_KEY
+value: 589233271357927
+
+key: API_SECRET
+value: OakuyzEtiypHUy9GHBxzIk6jyqY
+
+key: DATABASE_URL
+value: postgresql://neondb_owner:npg_zufvUKpg1b7I@ep-bitter-math-a1d6lzht-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require
+
+type: worker
+name: gofile-auto-refresh-worker
+env: python
+buildCommand: pip install -r auto_task_flask/requirements.txt
+startCommand: bash auto_task_flask/start.sh
+plan: free

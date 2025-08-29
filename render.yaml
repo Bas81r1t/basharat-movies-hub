@@ -7,7 +7,7 @@ services:
       python manage.py collectstatic --noinput
     startCommand: gunicorn basharat.wsgi:application
     postDeployCommand: |
-      python manage.py loaddata --clear movies
+      python manage.py flush --noinput
       python manage.py loaddata data.json
     envVars:
       - key: SECRET_KEY

@@ -6,7 +6,6 @@ services:
       pip install -r requirements.txt
       python manage.py collectstatic --noinput
     startCommand: gunicorn basharat.wsgi:application
-    postDeployCommand: python manage.py flush --noinput && python manage.py loaddata data.json
     envVars:
       - key: SECRET_KEY
         value: django-insecure--0#lkljw^@ia8n-szf$twpo2jvhcz=ri#nj6=ai3ofm$$7ed3b

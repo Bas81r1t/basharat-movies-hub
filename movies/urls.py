@@ -31,7 +31,7 @@ urlpatterns = [
     path("track-install/", track_install, name="track_install"),
 
     # -------------------------
-    # AJAX endpoint for install stats
+    # AJAX endpoint for install stats here
     # -------------------------
     path("ajax/install-stats/", get_install_stats, name="ajax_install_stats"),
 ]

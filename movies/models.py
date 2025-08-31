@@ -15,6 +15,8 @@ class Playlist(models.Model):
     name = models.CharField(max_length=100)
     banner = CloudinaryField("banner", blank=True, null=True)
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True)
+    # Yeh 'created_at' field add kiya gaya hai
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return self.name

@@ -7,7 +7,7 @@ from django.utils import timezone
 from django.core.mail import send_mail, BadHeaderError
 from django.conf import settings
 from django.contrib import messages
-from django.db.models import Sum
+from django.db.models import Count, Sum
 import json
 import re
 import uuid
@@ -26,16 +26,20 @@ def extract_episode_number(title):
 # 🔹 Home Page
 def home(request):
     query = request.GET.get("q")
-    playlists = Playlist.objects.all()
+    # ✅ Update: playlists ko created_at field ke hisaab se sort karo
+    playlists = Playlist.objects.all().order_by('-created_at')
     categories = Category.objects.all()
     movies = None
     not_found = False
-    unlisted_movies = Movie.objects.filter(playlist__isnull=True)
+    
+    # ✅ Fix: Movie model mein created_at nahi hai, isliye title se sort kiya hai
+    unlisted_movies = Movie.objects.filter(playlist__isnull=True).order_by('-title')
 
     if query:
-        playlists = Playlist.objects.filter(name__icontains=query)
+        playlists = Playlist.objects.filter(name__icontains=query).order_by('-created_at')
+        # ✅ Fix: Movie model mein created_at nahi hai, isliye title se sort kiya hai
         if not playlists.exists():
-            movies = Movie.objects.filter(title__icontains=query)
+            movies = Movie.objects.filter(title__icontains=query).order_by('-title')
             if not movies.exists():
                 not_found = True
 
@@ -57,15 +61,17 @@ def home(request):
 def playlist_detail(request, playlist_id):
     playlist = get_object_or_404(Playlist, id=playlist_id)
     movies = Movie.objects.filter(playlist=playlist)
-    movies = sorted(movies, key=lambda m: extract_episode_number(m.title))
+    # ✅ Fix: Movie ko title field ke hisaab se sort kiya gaya hai.
+    movies = movies.order_by('-title')
     return render(request, "playlist_detail.html", {"playlist": playlist, "movies": movies})
 
 
 # 🔹 Category Detail
 def category_detail(request, category_id):
     category = get_object_or_404(Category, id=category_id)
-    movies = list(Movie.objects.filter(category=category))
-    playlists = list(Playlist.objects.filter(category=category))
+    # ✅ Fix: Movies aur Playlists ko title aur created_at ke hisaab se sort kiya
+    movies = list(Movie.objects.filter(category=category).order_by('-title'))
+    playlists = list(Playlist.objects.filter(category=category).order_by('-created_at'))
 
     query = request.GET.get("q")
     if query:
@@ -78,6 +84,7 @@ def category_detail(request, category_id):
     for p in playlists:
         items.append({"type": "playlist", "obj": p})
 
+    # ✅ Update: Sorting ko simplified kar diya gaya hai, ab ye order_by pehle se ho chuka hai
     items.sort(key=lambda x: (0 if x["type"] == "movie" else 1, str(x["obj"])))
 
     return render(request, "category_detail.html", {

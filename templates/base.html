@@ -1,166 +1,193 @@
 {% load static %}
+{% load cloudinary %}
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <title>Basharat Movies Hub</title>
+    <title>Basharat Movies Hub</title>
 
-  <!-- Bootstrap CSS -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
-  <!-- Custom CSS -->
-  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
 
-  <!-- Favicon -->
-  <link rel="icon" type="image/png" href="{% static 'images/icon.png' %}">
-  <link rel="apple-touch-icon" sizes="192x192" href="{% static 'images/icon.png' %}">
-  <link rel="apple-touch-icon" sizes="512x512" href="{% static 'images/icon.png' %}">
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="{% static 'images/icon.png' %}">
+    <link rel="apple-touch-icon" sizes="192x192" href="{% static 'images/icon.png' %}">
+    <link rel="apple-touch-icon" sizes="512x512" href="{% static 'images/icon.png' %}">
 
-  <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      height: 100%;
-      overflow-x: hidden;
-    }
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow-x: hidden;
+        }
 
-    /* Lenis wrapper */
-    #lenis-wrapper {
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      will-change: transform;
-      backface-visibility: hidden;
-      perspective: 1000px;
-    }
+        /* Lenis wrapper */
+        #lenis-wrapper {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            will-change: transform;
+            backface-visibility: hidden;
+            perspective: 1000px;
+        }
 
-    main {
-      flex: 1 0 auto;
-    }
+        main {
+            flex: 1 0 auto;
+        }
 
-    footer {
-      flex-shrink: 0;
-      background-color: #222;
-      color: #fff;
-      text-align: center;
-      padding: 20px 0;
-    }
+        footer {
+            flex-shrink: 0;
+            background-color: #222;
+            color: #fff;
+            text-align: center;
+            padding: 20px 0;
+        }
 
-    /* Scroll section animations */
-    .scroll-section {
-      opacity: 0;
-      transform: translateY(30px);
-      transition: all 0.8s ease-out;
-    }
-    .scroll-section.active {
-      opacity: 1;
-      transform: translateY(0);
-    }
+        /* Scroll section animations */
+        .scroll-section {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s ease-out;
+        }
+        .scroll-section.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
 
-    /* Footer link hover */
-    footer a {
-      color: #4da6ff;
-      transition: color 0.3s ease;
-    }
-    footer a:hover {
-      color: #1a73e8;
-    }
+        /* Footer link hover */
+        footer a {
+            color: #4da6ff;
+            transition: color 0.3s ease;
+        }
+        footer a:hover {
+            color: #1a73e8;
+        }
 
-    /* Navbar scroll shadow */
-    .navbar-scrolled {
-      background-color: rgba(34,34,34,0.95) !important;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-      transition: all 0.3s ease-in-out;
-    }
+        /* Navbar scroll shadow */
+        .navbar-scrolled {
+            background-color: rgba(34,34,34,0.95) !important;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: all 0.3s ease-in-out;
+        }
 
-    /* Install Button */
-    #install-btn {
-      display: none;
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      z-index: 1000;
-      padding: 10px 20px;
-      background-color: #4da6ff;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-    #install-btn:hover {
-      background-color: #1a73e8;
-    }
-  </style>
+        /* Install Button */
+        #install-btn {
+            display: none;
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+            padding: 10px 20px;
+            background-color: #4da6ff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        #install-btn:hover {
+            background-color: #1a73e8;
+        }
+        
+        /* Movie Card Styles */
+        .movie-card {
+            background-color: #2e3032;
+            border-radius: 12px;
+            box-shadow: 0 0 5px rgba(255, 255, 255, 0.5); /* Darker white glow */
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .movie-card:hover {
+            transform: scale(1.02); /* Subtle hover effect */
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.7); /* Stronger white glow on hover */
+        }
+
+        .movie-card:active {
+            box-shadow: 0 0 15px rgba(255, 0, 0, 0.7); /* Red glow on click */
+        }
+
+        .card-title {
+            color: #f0f0f0;
+            font-size: 1rem;
+            /* White-space and overflow removed to allow text to wrap */
+            text-overflow: ellipsis;
+        }
+    </style>
 </head>
 <body>
 
-  <div id="lenis-wrapper">
+    <div id="lenis-wrapper">
 
-    <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-      <div class="container-fluid">
-        <a class="navbar-brand" href="/">🎬 Basharat Movies Hub</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-          <span class="navbar-toggler-icon"></span>
-        </button>
+        <!-- Navbar -->
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="/">🎬 Basharat Movies Hub</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
 
-        <div class="collapse navbar-collapse" id="navbarNav">
-          <ul class="navbar-nav ms-auto">
-            <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
-            {% if user.is_authenticated and user.is_staff %}{% endif %}
-            {% if user.is_authenticated %}
-              <li class="nav-item"><a class="nav-link disabled">Hi {{ user.username }}</a></li>
-            {% else %}
-              <li class="nav-item"><a class="nav-link" href="/admin/login/">Admin Login</a></li>
-            {% endif %}
-          </ul>
-        </div>
-      </div>
-    </nav>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav ms-auto">
+                        <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
+                        {% if user.is_authenticated and user.is_staff %}{% endif %}
+                        {% if user.is_authenticated %}
+                          <li class="nav-item"><a class="nav-link disabled">Hi {{ user.username }}</a></li>
+                        {% else %}
+                          <li class="nav-item"><a class="nav-link" href="/admin/login/">Admin Login</a></li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+        </nav>
 
-    <!-- Main Content -->
-    <main class="container my-4">
-      {% block content %}{% endblock %}
-    </main>
+        <!-- Main Content -->
+        <main class="container my-4">
+            {% block content %}{% endblock %}
+        </main>
 
-    <!-- Footer -->
-    <footer>
-      <p class="mb-1">© 2025 Basharat Movies Hub | Made ❤️ by Basharat</p>
-      <div class="mt-3" style="font-size:14px;color:#aaa;max-width:800px;margin:auto;line-height:1.6;">
-        <strong>📌 Disclaimer:</strong>  
-        The movies and files available through this website are 
-        <b>not hosted on our servers</b>. We only provide 
-        <b>publicly available links</b> to content that is already uploaded 
-        on third-party platforms such as <b>Archive.org</b> and other free 
-        hosting services.  
-        <br><br>
-        We <b>do not claim ownership</b> of any content. All copyrights 
-        belong to their respective owners.  
-        If you are a copyright owner and believe that your material 
-        has been linked improperly, please 
-        <a href="/contact" style="color:#4da6ff; text-decoration:none;">contact us</a>.  
-        We will remove the link immediately in compliance with the <b>DMCA</b>.
-      </div>
-    </footer>
+        <!-- Footer -->
+        <footer>
+            <p class="mb-1">© 2025 Basharat Movies Hub | Made ❤️ by Basharat</p>
+            <div class="mt-3" style="font-size:14px;color:#aaa;max-width:800px;margin:auto;line-height:1.6;">
+                <strong>📌 Disclaimer:</strong>
+                The movies and files available through this website are
+                <b>not hosted on our servers</b>. We only provide
+                <b>publicly available links</b> to content that is already uploaded
+                on third-party platforms such as <b>Archive.org</b> and other free
+                hosting services.
+                <br><br>
+                We <b>do not claim ownership</b> of any content. All copyrights
+                belong to their respective owners.
+                If you are a copyright owner and believe that your material
+                has been linked improperly, please
+                <a href="/contact" style="color:#4da6ff; text-decoration:none;">contact us</a>.
+                We will remove the link immediately in compliance with the <b>DMCA</b>.
+            </div>
+        </footer>
 
-    <!-- PWA Install Button -->
-    <button id="install-btn">Install App</button>
+        <!-- PWA Install Button -->
+        <button id="install-btn">Install App</button>
 
-  </div> <!-- #lenis-wrapper -->
+    </div> <!-- #lenis-wrapper -->
 
-  <!-- Bootstrap JS -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-  <!-- PWA Install Tracker JS -->
-  <script src="{% static 'js/install_tracker.js' %}"></script>
+    <!-- PWA Install Tracker JS -->
+    <script src="{% static 'js/install_tracker.js' %}"></script>
 
-  <!-- Custom JS (Smooth scroll + fade-in + navbar shadow) -->
-  <script src="{% static 'js/index.js' %}"></script>
+    <!-- Custom JS (Smooth scroll + fade-in + navbar shadow) -->
+    <script src="{% static 'js/index.js' %}"></script>
 
-  <!-- Optional: Remove Lenis reference completely -->
-  <!-- <script src="https://cdn.jsdelivr.net/npm/@studio-freight/lenis@1.0.27/dist/lenis.min.js"></script> -->
+    <!-- Optional: Remove Lenis reference completely -->
+    <!-- <script src="https://cdn.jsdelivr.net/npm/@studio-freight/lenis@1.0.27/dist/lenis.min.js"></script> -->
 
 </body>
 </html>

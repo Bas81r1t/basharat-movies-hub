@@ -3,6 +3,25 @@
 {% load cloudinary %}
 
 {% block content %}
+<style>
+.movie-card {
+    /* Existing styles */
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    border-radius: 12px;
+    box-shadow: 0 0 5px rgba(255, 255, 255, 0.5); /* Darker white glow */
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.movie-card:hover {
+    transform: scale(1.02); /* Subtle hover effect */
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.7); /* Stronger white glow on hover */
+}
+
+.movie-card:active {
+    box-shadow: 0 0 15px rgba(255, 0, 0, 0.7); /* Red glow on click */
+}
+</style>
+
 <div class="container mt-4">
     <!-- Search Form -->
     <form method="get" action="" class="mb-4">
@@ -20,7 +39,7 @@
         {% endif %}
 
         <!-- Combined Search Results -->
-        <div class="row mt-3">
+        <div class="row mt-3 gx-3">
             {% for playlist in playlists|default:'' %}
                 <div class="col-6 col-sm-4 col-md-3 mb-3">
                     <div class="card movie-card h-100">
@@ -39,7 +58,7 @@
             {% endfor %}
 
             {% for movie in movies|default:'' %}
-                <div class="col-6 col-sm-4 col-md-3 mb-4">
+                <div class="col-6 col-sm-4 col-md-3 mb-3">
                     <div class="card movie-card h-100">
                         <a href="{% url 'movie_detail' movie.id %}" class="title-link">
                             {% if movie.poster %}
@@ -71,7 +90,7 @@
         </div>
 
         <!-- Combined Movies + Playlists Grid -->
-        <div class="row mt-4">
+        <div class="row mt-4 gx-3">
             {% for playlist in playlists|default:'' %}
                 <div class="col-6 col-sm-4 col-md-3 mb-3">
                     <div class="card movie-card h-100">
@@ -90,7 +109,7 @@
             {% endfor %}
 
             {% for movie in movies|default:'' %}
-                <div class="col-6 col-sm-4 col-md-3 mb-4">
+                <div class="col-6 col-sm-4 col-md-3 mb-3">
                     <div class="card movie-card h-100">
                         <a href="{% url 'movie_detail' movie.id %}" class="title-link">
                             {% if movie.poster %}
@@ -107,7 +126,7 @@
             {% endfor %}
 
             {% for movie in unlisted_movies|default:'' %}
-                <div class="col-6 col-sm-4 col-md-3 mb-4">
+                <div class="col-6 col-sm-4 col-md-3 mb-3">
                     <div class="card movie-card h-100">
                         <a href="{% url 'movie_detail' movie.id %}" class="title-link">
                             {% if movie.poster %}

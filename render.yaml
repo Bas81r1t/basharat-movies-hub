@@ -17,7 +17,7 @@ services:
       - key: API_SECRET
         value: OakuyzEtiypHUy9GHBxzIk6jyqY
       - key: DATABASE_URL
-        value: postgresql://neondb_owner:npg_zufvUKpg1b7I@ep-bitter-math-a1d6lzht-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require
+        value: postgresql://neondb_owner:npg_RIQlmMY9t5Oo@ep-dry-shadow-a1xc16yj-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require'
 
   - type: worker
     name: gofile-auto-refresh-worker

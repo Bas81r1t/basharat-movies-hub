@@ -15,7 +15,6 @@ class Playlist(models.Model):
     name = models.CharField(max_length=100)
     banner = CloudinaryField("banner", blank=True, null=True)
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True)
-    # Yeh 'created_at' field add kiya gaya hai
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -30,6 +29,8 @@ class Movie(models.Model):
     udrop_link = models.URLField(blank=True, null=True)
     playlist = models.ForeignKey(Playlist, on_delete=models.SET_NULL, null=True, blank=True)
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True)
+    # 🔽 YEH LINE ADD KI GAYI HAI 🔽
+    created_at = models.DateTimeField(auto_now_add=True, null=True)
 
     def __str__(self):
         return self.title

@@ -1,3 +1,5 @@
+# views.py (Updated Code)
+
 from django.shortcuts import render, get_object_or_404, redirect
 from .models import Playlist, Movie, DownloadLog, InstallTracker, Category
 from django.http import JsonResponse
@@ -7,7 +9,8 @@ from django.utils import timezone
 from django.core.mail import send_mail, BadHeaderError
 from django.conf import settings
 from django.contrib import messages
-from django.db.models import Count, Sum
+from django.db.models import Count, Sum, Q # <-- Q ko import karo
+from itertools import chain # <-- chain ko import karo
 import json
 import re
 import uuid
@@ -23,36 +26,40 @@ def extract_episode_number(title):
     return float("inf")
 
 
-# 🔹 Home Page
+# 🔹 Home Page (Updated and Simplified)
 def home(request):
     query = request.GET.get("q")
-    # ✅ Update: playlists ko created_at field ke hisaab se sort karo
-    playlists = Playlist.objects.all().order_by('-created_at')
-    categories = Category.objects.all()
-    movies = None
-    not_found = False
     
-    # ✅ Fix: Movie model mein created_at nahi hai, isliye title se sort kiya hai
-    unlisted_movies = Movie.objects.filter(playlist__isnull=True).order_by('-title')
+    # Sabhi playlists aur movies le lo
+    all_playlists = Playlist.objects.all()
+    all_movies = Movie.objects.all() # Ab unlisted movies alag se lene ki zaroorat nahi
 
+    # Agar search query hai, to filter karo
     if query:
-        playlists = Playlist.objects.filter(name__icontains=query).order_by('-created_at')
-        # ✅ Fix: Movie model mein created_at nahi hai, isliye title se sort kiya hai
-        if not playlists.exists():
-            movies = Movie.objects.filter(title__icontains=query).order_by('-title')
-            if not movies.exists():
-                not_found = True
+        # Dono models me ek saath search karo
+        playlists_q = Q(name__icontains=query)
+        movies_q = Q(title__icontains=query)
+        
+        all_playlists = all_playlists.filter(playlists_q)
+        all_movies = all_movies.filter(movies_q)
+
+    # Dono ko ek list me combine karo
+    combined_list = list(chain(all_playlists, all_movies))
+    
+    # Ab 'created_at' ke hisaab se sort karo, newest sabse pehle
+    # Jin items me created_at nahi hai (purane data ke liye), unko aakhir me rakhega
+    combined_list.sort(key=lambda x: x.created_at or timezone.datetime.min.replace(tzinfo=timezone.utc), reverse=True)
+    
+    not_found = query and not combined_list
 
     return render(
         request,
         "home.html",
         {
-            "playlists": playlists,
-            "categories": categories,
-            "movies": movies,
+            "media_items": combined_list, # Hum ab template ko ek hi list bhejenge
+            "categories": Category.objects.all(),
             "query": query,
             "not_found": not_found,
-            "unlisted_movies": unlisted_movies,
         },
     )
 
@@ -60,36 +67,29 @@ def home(request):
 # 🔹 Playlist Detail
 def playlist_detail(request, playlist_id):
     playlist = get_object_or_404(Playlist, id=playlist_id)
-    movies = Movie.objects.filter(playlist=playlist)
-    # ✅ Fix: Movie ko title field ke hisaab se sort kiya gaya hai.
-    movies = movies.order_by('-title')
+    # Ab movies ko created_at se sort kar sakte hain
+    movies = Movie.objects.filter(playlist=playlist).order_by('-created_at')
     return render(request, "playlist_detail.html", {"playlist": playlist, "movies": movies})
 
 
 # 🔹 Category Detail
 def category_detail(request, category_id):
     category = get_object_or_404(Category, id=category_id)
-    # ✅ Fix: Movies aur Playlists ko title aur created_at ke hisaab se sort kiya
-    movies = list(Movie.objects.filter(category=category).order_by('-title'))
-    playlists = list(Playlist.objects.filter(category=category).order_by('-created_at'))
-
     query = request.GET.get("q")
+
+    movies = Movie.objects.filter(category=category)
+    playlists = Playlist.objects.filter(category=category)
+
     if query:
-        movies = [m for m in movies if query.lower() in m.title.lower()]
-        playlists = [p for p in playlists if query.lower() in p.name.lower()]
+        movies = movies.filter(title__icontains=query)
+        playlists = playlists.filter(name__icontains=query)
 
-    items = []
-    for m in movies:
-        items.append({"type": "movie", "obj": m})
-    for p in playlists:
-        items.append({"type": "playlist", "obj": p})
-
-    # ✅ Update: Sorting ko simplified kar diya gaya hai, ab ye order_by pehle se ho chuka hai
-    items.sort(key=lambda x: (0 if x["type"] == "movie" else 1, str(x["obj"])))
-
+    combined_list = list(chain(movies, playlists))
+    combined_list.sort(key=lambda x: x.created_at or timezone.datetime.min.replace(tzinfo=timezone.utc), reverse=True)
+    
     return render(request, "category_detail.html", {
         "category": category,
-        "items": items,
+        "items": combined_list,
         "query": query,
     })
 
@@ -102,7 +102,7 @@ def movie_detail(request, movie_id):
 
 # 🔹 Get Client IP
 def get_client_ip(request):
-    x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
+    x_forwarded_for = request.META.get("HTTP_X_FORWARDED_for")
     if x_forwarded_for:
         return x_forwarded_for.split(",")[0]
     return request.META.get("REMOTE_ADDR")

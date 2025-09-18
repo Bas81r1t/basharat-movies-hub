@@ -2,30 +2,30 @@
 {% load static %}
 
 {% block head %}
-  <title>{{ movie.title }} - Basharat Movies Hub</title>
-  <meta name="description" content="{{ movie.description|truncatechars:150 }}">
-  <meta name="keywords" content="{{ movie.title }}, Basharat Movies Hub, Download Movies, Free HD Movies">
-  
-  <!-- Social Sharing Meta Tags -->
-  <meta property="og:title" content="{{ movie.title }}">
-  <meta property="og:description" content="{{ movie.description|truncatechars:150 }}">
-  <meta property="og:image" content="{{ movie.poster.url }}">
-  <meta property="og:type" content="video.movie">
-  <meta name="robots" content="index, follow">
+  <title>{{ movie.title }} - Basharat Movies Hub</title>
+  <meta name="description" content="{{ movie.description|truncatechars:150 }}">
+  <meta name="keywords" content="{{ movie.title }}, Basharat Movies Hub, Download Movies, Free HD Movies">
+  
+  <!-- Social Sharing Meta Tags -->
+  <meta property="og:title" content="{{ movie.title }}">
+  <meta property="og:description" content="{{ movie.description|truncatechars:150 }}">
+  <meta property="og:image" content="{{ movie.poster.url }}">
+  <meta property="og:type" content="video.movie">
+  <meta name="robots" content="index, follow">
 {% endblock %}
 
 {% block content %}
 <div class="container mt-5">
-  <div class="row">
-    <div class="col-md-4">
-      <img src="{{ movie.poster.url }}" class="img-fluid" alt="{{ movie.title }}">
-    </div>
-    <div class="col-md-8">
-      <h2 class="movie-title">{{ movie.title }}</h2>
-      <p class="movie-description">{{ movie.description }}</p>
-      <!-- ✅ Updated to call download_movie view -->
-      <a href="{% url 'download_movie' movie.id %}" class="btn btn-primary">Download Now</a>
-    </div>
-  </div>
+  <div class="row">
+    <div class="col-md-4">
+      <img src="{{ movie.poster.url }}" class="img-fluid" alt="{{ movie.title }}">
+    </div>
+    <div class="col-md-8">
+      <h2 class="movie-title">{{ movie.title }}</h2>
+      <p class="movie-description">{{ movie.description|linebreaksbr }}</p>
+      <!-- ✅ Updated to call download_movie view -->
+      <a href="{% url 'download_movie' movie.id %}" class="btn btn-primary">Download Now</a>
+    </div>
+  </div>
 </div>
 {% endblock %}

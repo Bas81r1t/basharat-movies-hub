@@ -17,7 +17,11 @@
     .movie-container {
       margin-top: 10px; /* ✅ केवल 10px space */
     }
-  </style>
+
+    .movie-details li {
+      margin-bottom: 5px; /* Add some spacing between list items */
+    }
+ </style>
 {% endblock %}
 
 {% block content %}
@@ -27,10 +31,20 @@
       <img src="{{ movie.poster.url }}" class="img-fluid" alt="{{ movie.title }}">
     </div>
     <div class="col-md-8">
-      <h2 class="movie-title">{{ movie.title }}</h2>
-      <p class="movie-description">{{ movie.description|linebreaksbr }}</p>
+      <h2 style="color: #008000;" class="movie-title mt-3">{{ movie.title }}</h2>
+      <h2><span style="color: #0ee3c7;">Movie Details :</span></h2>
+      
+      <!-- ✅ Updated to use a list for details with bullet points -->
+      <ul style="color: #b7b7b7;"  class="movie-details">
+        {% for line in movie.description.splitlines %}
+          {% if line %}
+            <li>{{ line }}</li>
+          {% endif %}
+        {% endfor %}
+      </ul>
+
       <!-- ✅ Updated to call download_movie view -->
-      <a href="{% url 'download_movie' movie.id %}" class="btn btn-primary">Download Now</a>
+      <a href="{% url 'download_movie' movie.id %}" class="btn btn-primary mt-4">Download Now</a>
     </div>
   </div>
 </div>

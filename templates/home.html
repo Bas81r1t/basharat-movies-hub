@@ -4,8 +4,8 @@
 
 {% block content %}
 <style>
+/* Existing styles */
 .movie-card {
-    /* Existing styles */
     transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
     border-radius: 12px;
     box-shadow: 0 0 5px rgba(255, 255, 255, 0.5); /* Darker white glow */
@@ -25,6 +25,30 @@
     height: 250px; /* Adjust height as needed */
     object-fit: cover; /* Ensures the image covers the area without distortion */
 }
+
+/* Category button styles */
+.category-buttons-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center; /* Center the buttons horizontally */
+    gap: 0.5rem; /* Space between buttons */
+    margin-bottom: 1.5rem; /* Add some margin below the buttons */
+}
+.category-button {
+    background-color: #2e3032;
+    color: #ffffff;
+    padding: 8px 16px;
+    border-radius: 6px; /* Buttons ko thoda sa rounded kiya hai */
+    text-decoration: none;
+    font-weight: bold;
+    border: 1px solid #4a4d50;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+.category-button:hover {
+    background-color: #4a4d50;
+    transform: scale(1.05);
+}
+
 </style>
 
 <div class="container mt-4">
@@ -41,13 +65,10 @@
             <div class="alert alert-warning mt-3">😢 Sorry! Kuch nahi mila.</div>
         {% endif %}
     {% else %}
-        <h2 class="mb-3">Categories</h2>
-        <div class="d-flex flex-wrap mb-4 gap-2">
+        <h2 class="mb-3 text-center"></h2>
+        <div class="category-buttons-container">
             {% for category in categories %}
-                <a href="{% url 'category_detail' category.id %}"
-                   style="background-color: #2e3032; color: #ffffff; padding: 8px 12px; border-radius: 4px; text-decoration: none; font-weight: bold; border: 1px solid #4a4d50;"
-                   onmouseover="this.style.backgroundColor='#4a4d50'; this.style.borderColor='#6c757d'; this.style.transform='scale(1.05)'; this.style.boxShadow='0 4px 15px rgba(0,0,0,0.3)';"
-                   onmouseout="this.style.backgroundColor='#2e3032'; this.style.borderColor='#4a4d50'; this.style.transform='scale(1)'; this.style.boxShadow='none';">
+                <a href="{% url 'category_detail' category.id %}" class="category-button">
                     {{ category.name }}
                 </a>
             {% endfor %}

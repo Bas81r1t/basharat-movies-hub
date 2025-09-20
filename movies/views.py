@@ -1,5 +1,3 @@
-# views.py (Updated Code)
-
 from django.shortcuts import render, get_object_or_404, redirect
 from .models import Playlist, Movie, DownloadLog, InstallTracker, Category
 from django.http import JsonResponse
@@ -72,7 +70,7 @@ def playlist_detail(request, playlist_id):
     return render(request, "playlist_detail.html", {"playlist": playlist, "movies": movies})
 
 
-# 🔹 Category Detail
+# 🔹 Category Detail (FIXED ✅)
 def category_detail(request, category_id):
     category = get_object_or_404(Category, id=category_id)
     query = request.GET.get("q")
@@ -84,12 +82,19 @@ def category_detail(request, category_id):
         movies = movies.filter(title__icontains=query)
         playlists = playlists.filter(name__icontains=query)
 
-    combined_list = list(chain(movies, playlists))
-    combined_list.sort(key=lambda x: x.created_at or timezone.datetime.min.replace(tzinfo=timezone.utc), reverse=True)
+    # ✅ Wrapper dict banao
+    items = []
+    for m in movies:
+        items.append({"type": "movie", "obj": m})
+    for p in playlists:
+        items.append({"type": "playlist", "obj": p})
+
+    # ✅ Sort by created_at
+    items.sort(key=lambda x: x["obj"].created_at or timezone.datetime.min.replace(tzinfo=timezone.utc), reverse=True)
     
     return render(request, "category_detail.html", {
         "category": category,
-        "items": combined_list,
+        "items": items,
         "query": query,
     })
 

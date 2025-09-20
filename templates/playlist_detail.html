@@ -5,51 +5,63 @@
 {% block content %}
 
 <style>
-    /* Custom styles to make playlist cards look like homepage cards */
+/* Existing styles */
+.movie-card {
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    border-radius: 12px;
+    box-shadow: 0 0 5px rgba(255, 255, 255, 0.5); /* Darker white glow */
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.movie-card:hover {
+    transform: scale(1.02); /* Subtle hover effect */
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.7); /* Stronger white glow on hover */
+}
+
+.movie-card:active {
+    box-shadow: 0 0 15px rgba(255, 0, 0, 0.7); /* Red glow on click */
+}
+.card-img-top {
+    width: 100%;
+    height: 270px; /* Slightly increased height */
+    object-fit: cover; /* Ensures the image covers the area without distortion */
+}
+
+/* Category button styles */
+.category-buttons-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center; /* Center the buttons horizontally */
+    gap: 0.5rem; /* Space between buttons */
+    margin-bottom: 1.5rem; /* Add some margin below the buttons */
+}
+.category-button {
+    background-color: #2e3032;
+    color: #ffffff;
+    padding: 8px 16px;
+    border-radius: 6px; /* Buttons ko thoda sa rounded kiya hai */
+    text-decoration: none;
+    font-weight: bold;
+    border: 1px solid #4a4d50;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+.category-button:hover {
+    background-color: #4a4d50;
+    transform: scale(1.05);
+}
+
+/* Container padding kam kar ke cards chauda karna */
+.container-fluid, .container {
+    padding-left: 5px;
+    padding-right: 5px;
+}
+
+/* Mobile cards full width */
+@media (max-width: 576px) {
     .movie-card {
-        transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-        border-radius: 12px;
-        background-color: #1a1a1a;
-        box-shadow: 0 0 5px rgba(255, 255, 255, 0.5); /* Darker white glow */
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        display: flex;
-        flex-direction: column;
-        height: 100%;
-        overflow: hidden;
-    }
-
-    .movie-card:hover {
-        transform: scale(1.02); /* Subtle hover effect */
-        box-shadow: 0 0 10px rgba(255, 255, 255, 0.7); /* Stronger white glow on hover */
-    }
-
-    .movie-card:active {
-        box-shadow: 0 0 15px rgba(255, 0, 0, 0.7); /* Red glow on click */
-    }
-
-    .card-img-top {
         width: 100%;
-        height: 250px; /* Fixed height for image */
-        object-fit: cover; /* Ensures the image covers the area without distortion */
     }
-
-    .card-body {
-        padding: 0.75rem;
-        flex-grow: 1; /* Allows the body to take up remaining space */
-        display: flex;
-        align-items: center; /* Center content vertically and horizontally */
-        justify-content: center;
-        text-align: center;
-    }
-    
-    .card-title {
-        font-size: 0.9rem; /* Slightly larger font for readability */
-        font-weight: 500;
-        line-height: 1.3;
-        color: #ddd;
-        display: block; /* Ensures title takes full width */
-        margin: 0;
-    }
+}
 </style>
 
 <div class="container">

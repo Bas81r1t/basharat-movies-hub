@@ -22,7 +22,7 @@
 }
 .card-img-top {
     width: 100%;
-    height: 250px; /* Adjust height as needed */
+    height: 270px; /* Slightly increased height */
     object-fit: cover; /* Ensures the image covers the area without distortion */
 }
 
@@ -49,6 +49,18 @@
     transform: scale(1.05);
 }
 
+/* Container padding kam kar ke cards chauda karna */
+.container-fluid, .container {
+    padding-left: 5px;
+    padding-right: 5px;
+}
+
+/* Mobile cards full width */
+@media (max-width: 576px) {
+    .movie-card {
+        width: 100%;
+    }
+}
 </style>
 
 <div class="container mt-4">

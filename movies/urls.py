@@ -1,37 +1,36 @@
 from django.urls import path
-from .views import (
-    home,
-    playlist_detail,
-    movie_detail,
-    download_movie,
-    track_install,
-    get_install_stats,
-    contact_view,
-    category_detail,  # नया view import किया
-)
+from django.contrib import admin
+from . import views
 
 urlpatterns = [
     # -------------------------
-    # Website pages
+    # Website Pages
     # -------------------------
-    path("", home, name="home"),
-    path("playlist/<int:playlist_id>/", playlist_detail, name="playlist_detail"),
-    path("category/<int:category_id>/", category_detail, name="category_detail"),  # नया URL pattern जोड़ा
-    path("movie/<int:movie_id>/", movie_detail, name="movie_detail"),
-    path("download/<int:movie_id>/", download_movie, name="download_movie"),
+    path("", views.home, name="home"),
+    path("playlist/<int:playlist_id>/", views.playlist_detail, name="playlist_detail"),
+    path("category/<int:category_id>/", views.category_detail, name="category_detail"),
+    path("movie/<int:movie_id>/", views.movie_detail, name="movie_detail"),
+    path("download/<int:movie_id>/", views.download_movie, name="download_movie"),
 
     # -------------------------
     # Contact Form
     # -------------------------
-    path("contact/", contact_view, name="contact"),
+    path("contact/", views.contact_view, name="contact"),
 
     # -------------------------
-    # PWA Install Tracking (Uninstall removed)
+    # PWA Install & Uninstall Tracking
     # -------------------------
-    path("track-install/", track_install, name="track_install"),
+    path("track-install/", views.track_install, name="track_install"),
+    path("track-uninstall/", views.track_uninstall, name="track_uninstall"),
 
     # -------------------------
-    # AJAX endpoint for install stats here
+    # Admin Dashboard URLs
     # -------------------------
-    path("ajax/install-stats/", get_install_stats, name="ajax_install_stats"),
+    path("admin/dashboard/", views.custom_admin_dashboard, name="admin_dashboard"),
+    path("admin/reset-install-data/", views.reset_install_data, name="reset_install_data"),
+
+    # -------------------------
+    # Django Admin
+    # -------------------------
+    path("admin/", admin.site.urls),
 ]

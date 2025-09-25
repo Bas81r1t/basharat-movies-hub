@@ -2,102 +2,104 @@
 {% load i18n log tz %}
 
 {% block extrastyle %}
-  {{ block.super }}
-  <style>
-    .stats-cards {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 15px;
-      margin-top: 20px;
-      padding-bottom: 20px;
-    }
-    .stats-card {
-      background: #1a1a1a;
-      color: #fff;
-      border-radius: 12px;
-      padding: 15px;
-      text-align: center;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.5);
-      font-size: 1.1rem;
-    }
-    .stats-card span {
-      font-size: 1.5rem;
-      display: block;
-    }
+    {{ block.super }}
+    <style>
+        .stats-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+            padding-bottom: 20px;
+        }
+        .stats-card {
+            background: #1a1a1a;
+            color: #fff;
+            border-radius: 12px;
+            padding: 15px;
+            text-align: center;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.5);
+            font-size: 1.1rem;
+        }
+        .stats-card span {
+            font-size: 1.5rem;
+            display: block;
+        }
 
-    .dashboard-widgets {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 20px;
-      margin-top: 30px;
-    }
-    .dashboard-widgets .module {
-      background: #111;
-      border-radius: 12px;
-      padding: 15px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.4);
-      transition: transform 0.2s ease;
-    }
-    .dashboard-widgets .module:hover {
-      transform: translateY(-3px);
-    }
-    .dashboard-widgets h2 {
-      margin-top: 0;
-      font-size: 1.2rem;
-      color: #eee;
-      border-bottom: 1px solid #333;
-      padding-bottom: 6px;
-      margin-bottom: 10px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .dashboard-widgets ul {
-      margin: 0;
-      padding-left: 18px;
-    }
-    .dashboard-widgets li {
-      margin-bottom: 6px;
-      color: #ccc;
-    }
-    .icon {
-      font-size: 1.4rem;
-    }
+        .dashboard-widgets {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+        .dashboard-widgets .module {
+            background: #111;
+            border-radius: 12px;
+            padding: 15px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+            transition: transform 0.2s ease;
+        }
+        .dashboard-widgets .module:hover {
+            transform: translateY(-3px);
+        }
+        .dashboard-widgets h2 {
+            margin-top: 0;
+            font-size: 1.2rem;
+            color: #eee;
+            border-bottom: 1px solid #333;
+            padding-bottom: 6px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .dashboard-widgets ul {
+            margin: 0;
+            padding-left: 18px;
+        }
+        .dashboard-widgets li {
+            margin-bottom: 6px;
+            color: #ccc;
+        }
+        .icon {
+            font-size: 1.4rem;
+        }
 
-    /* 👇 Gap fix sab modules ke bich */
-    #content-main .module {
-      margin-bottom: 20px;
-    }
-  </style>
+        /* 👇 Gap fix sab modules ke bich */
+        #content-main .module {
+            margin-bottom: 20px;
+        }
+    </style>
 {% endblock %}
 
 {% block content %}
-  <div id="content-main">
+<div id="content-main">
 
-    <!-- 🔹 Top Stats Summary Cards -->
     <div class="stats-cards">
-      <div class="stats-card">
-        <span>👥</span>
-        <strong>{{ total_users }}</strong><br>Users
-      </div>
-      <div class="stats-card">
-        <span>🎬</span>
-        <strong>{{ total_movies }}</strong><br>Movies
-      </div>
-      <div class="stats-card">
-        <span>⬇️</span>
-        <strong>{{ total_downloads }}</strong><br>Downloads
-      </div>
+        <div class="stats-card">
+            <span>👥</span>
+            <strong>{{ total_users }}</strong><br>Users
+        </div>
+        <div class="stats-card">
+            <span>🎬</span>
+            <strong>{{ total_movies }}</strong><br>Movies
+        </div>
+        <div class="stats-card">
+            <span>⬇️</span>
+            <strong>{{ total_downloads }}</strong><br>Downloads
+        </div>
+        <div class="stats-card">
+            <span>📦</span>
+            <strong>{{ total_installs }}</strong><br>Installs
+        </div>
     </div>
 
-    <!-- 🔹 Default Django apps -->
     {% if app_list %}
       {% for app in app_list %}
         <div class="app-{{ app.app_label }} module">
           <table>
             <caption>
               <a href="{{ app.app_url }}" class="section"
-                 title="{% blocktrans with name=app.name %}Models in the {{ name }} application{% endblocktrans %}">
+                  title="{% blocktrans with name=app.name %}Models in the {{ name }} application{% endblocktrans %}">
                 {{ app.name }}
               </a>
             </caption>
@@ -121,7 +123,6 @@
       {% endfor %}
     {% endif %}
 
-    <!-- 🔹 Recent actions -->
     <div class="module" id="recent-actions-module">
       <h2>🕒 {% trans 'Recent actions' %}</h2>
       {% get_admin_log 10 as admin_log for_user user %}
@@ -138,10 +139,8 @@
       {% endif %}
     </div>
 
-    <!-- 🔹 Custom widgets -->
     <div class="dashboard-widgets">
 
-      <!-- Top 5 Downloaded Movies -->
       <div class="module">
         <h2><span class="icon">🎬</span>Top 5 Downloaded Movies</h2>
         <ul>
@@ -153,7 +152,6 @@
         </ul>
       </div>
 
-      <!-- Recent Downloads -->
       <div class="module">
         <h2><span class="icon">⬇️</span>Recent Downloads</h2>
         <ul>
@@ -164,8 +162,17 @@
           {% endfor %}
         </ul>
       </div>
+      
+    <div class="module">
+  <h2><span class="icon">📦</span>Recent Installations</h2>
+  <ul>
+    {% for tracker in recent_installs %}
+      <li>{{ tracker.device_id|truncatechars:10 }}... ({{ tracker.last_action }}) - {{ tracker.created_at|localtime|date:"M d, Y h:i A" }}</li>
+    {% empty %}
+      <li>No recent activity yet</li>
+    {% endfor %}
+  </ul>
+</div>
 
-    </div>
-
-  </div>
+</div>
 {% endblock %}

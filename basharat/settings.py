@@ -18,7 +18,8 @@ DEBUG = config('DEBUG', default=False, cast=bool)
 ALLOWED_HOSTS = [
     'basharat-movies-hub.onrender.com',
     'localhost',
-    '127.0.0.1'
+    '127.0.0.1',
+    'testserver'  # Testing ke liye add karo
 ]
 
 # ✅ Installed Apps
@@ -78,7 +79,7 @@ DATABASES = {
     "default": dj_database_url.config(
         default=config("DATABASE_URL"),
         conn_max_age=600,
-        ssl_require=not DEBUG  # Ye line ab dynamic ho gayi hai
+        ssl_require=not DEBUG
     )
 }
 
@@ -120,12 +121,12 @@ cloudinary.config(
     secure=True
 )
 
-# ✅ Email Configuration (Local + Deploy safe)
+# ✅ Email Configuration
 EMAIL_BACKEND = config('EMAIL_BACKEND', default='django.core.mail.backends.smtp.EmailBackend').strip()
 EMAIL_HOST = config('EMAIL_HOST', default='smtp.gmail.com').strip()
 EMAIL_PORT = config('EMAIL_PORT', cast=int, default=587)
 EMAIL_USE_TLS = config('EMAIL_USE_TLS', cast=bool, default=True)
-EMAIL_USE_SSL = False  # Always False, do not set from env
+EMAIL_USE_SSL = False
 EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='bas81r1t@gmail.com').strip()
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='dxagtxtqfesjcyof').strip()
 DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default=EMAIL_HOST_USER).strip()

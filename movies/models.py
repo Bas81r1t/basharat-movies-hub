@@ -4,6 +4,7 @@ from cloudinary.models import CloudinaryField
 import uuid
 
 
+# 🔹 Category Model
 class Category(models.Model):
     name = models.CharField(max_length=100, unique=True)
 
@@ -11,6 +12,7 @@ class Category(models.Model):
         return self.name
 
 
+# 🔹 Playlist Model
 class Playlist(models.Model):
     name = models.CharField(max_length=100)
     banner = CloudinaryField("banner", blank=True, null=True)
@@ -21,6 +23,7 @@ class Playlist(models.Model):
         return self.name
 
 
+# 🔹 Movie Model
 class Movie(models.Model):
     title = models.CharField(max_length=200)
     description = models.TextField()
@@ -29,13 +32,13 @@ class Movie(models.Model):
     udrop_link = models.URLField(blank=True, null=True)
     playlist = models.ForeignKey(Playlist, on_delete=models.SET_NULL, null=True, blank=True)
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True)
-    # 🔽 YEH LINE ADD KI GAYI HAI 🔽
     created_at = models.DateTimeField(auto_now_add=True, null=True)
 
     def __str__(self):
         return self.title
 
 
+# 🔹 Download Log Model
 class DownloadLog(models.Model):
     movie_title = models.CharField(max_length=200)
     download_time = models.DateTimeField(default=timezone.now)
@@ -49,32 +52,18 @@ class DownloadLog(models.Model):
         return f"{self.movie_title} by {user_display} at {self.download_time.strftime('%Y-%m-%d %H:%M')}"
 
 
+# 🔹 Install Tracker Model (Merged & Improved)
 class InstallTracker(models.Model):
-    device_id = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
-    device_info = models.CharField(max_length=255, blank=True, null=True)
+    device_id = models.CharField(max_length=255, unique=True)  # Unique device
     install_count = models.PositiveIntegerField(default=0)
     deleted_count = models.PositiveIntegerField(default=0)
-    last_action = models.CharField(max_length=20, default="install")
+    last_action = models.CharField(
+        max_length=50,
+        choices=[("install", "Install"), ("uninstall", "Uninstall")],
+        default="install"
+    )
     updated_at = models.DateTimeField(auto_now=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
-    def install(self):
-        """New install or reinstall"""
-        self.install_count = 1
-        self.deleted_count = 0
-        self.last_action = "install"
-        self.save()
-
-    def uninstall(self):
-        """App uninstall (current state)"""
-        self.install_count = 0
-        self.deleted_count = 1
-        self.last_action = "uninstall"
-        self.save()
-
-    def reinstall(self):
-        """Reinstall after uninstall"""
-        self.install()
-
     def __str__(self):
-        return f"Device {self.device_id} - {self.last_action}"
+        return f"{self.device_id} — {self.last_action}"

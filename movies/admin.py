@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth import get_user_model
-from django.db.models import Count
+from django.db.models import Count, Sum # 👈 Yahan `Sum` import kiya hai
 from .models import Playlist, Movie, DownloadLog, InstallTracker, Category
 
 User = get_user_model()
@@ -13,20 +13,19 @@ class MyAdminSite(admin.AdminSite):
     index_title = "Dashboard"
 
     def index(self, request, extra_context=None):
-        # ---- Top stats (CURRENT state) ----
-        # ✅ Updated queries to use the new models
-        total_installs = InstallTracker.objects.filter(last_action='install').aggregate(total_installs=Count('device_id'))['total_installs'] or 0
-        total_deletes = InstallTracker.objects.filter(last_action='uninstall').aggregate(total_deletes=Count('device_id'))['total_deletes'] or 0
+        # ---- Top stats (Updated logic) ----
+        # 📌 YEH LINE CHANGE KARO
+        total_installs = InstallTracker.objects.aggregate(total=Sum('install_count'))['total'] or 0
+        
+        # 📌 YEH LINE CHANGE KARO
+        total_uninstalls = InstallTracker.objects.aggregate(total=Sum('deleted_count'))['total'] or 0
+
         total_movies = Movie.objects.count()
         total_users = User.objects.count()
         total_downloads = DownloadLog.objects.count()
 
-        # ---- Widgets data ----
-        # ✅ Updated queries for recent installs
-        recent_installs = (
-            InstallTracker.objects.filter(last_action='install')
-            .order_by("-updated_at")[:5]
-        )
+        # ---- Widgets data (Updated) ----
+        recent_installs = InstallTracker.objects.order_by("-updated_at")[:5]
 
         top_movies = (
             DownloadLog.objects.values("movie_title")
@@ -38,7 +37,7 @@ class MyAdminSite(admin.AdminSite):
 
         ctx = {
             "total_installs": total_installs,
-            "total_deletes": total_deletes,
+            "total_uninstalls": total_uninstalls,
             "total_movies": total_movies,
             "total_users": total_users,
             "total_downloads": total_downloads,
@@ -77,7 +76,6 @@ class MovieAdmin(admin.ModelAdmin):
 class PlaylistAdmin(admin.ModelAdmin):
     list_display = ('name', 'id')
     search_fields = ('name',)
-    pass
 
 
 @admin.register(DownloadLog, site=admin_site)
@@ -88,21 +86,16 @@ class DownloadLogAdmin(admin.ModelAdmin):
     search_fields = ("movie_title", "username", "ip_address")
 
 
+# 📦 InstallTracker model with updated admin
 @admin.register(InstallTracker, site=admin_site)
 class InstallTrackerAdmin(admin.ModelAdmin):
-    list_display = (
-        "device_id",
-        "install_count",
-        "deleted_count",
-        "last_action",
-        "updated_at",
-        "created_at",
-    )
+    list_display = ("device_id", "install_count", "deleted_count", "last_action", "updated_at", "created_at")
     list_filter = ("last_action", "updated_at", "created_at")
     ordering = ("-updated_at",)
-    search_fields = ("device_id",)
+    search_fields = ("device_id", "device_info")
 
-# नया Category मॉडल रजिस्टर करो
+
+# 📦 Category model admin
 @admin.register(Category, site=admin_site)
 class CategoryAdmin(admin.ModelAdmin):
     list_display = ['name']

@@ -52,18 +52,17 @@ class DownloadLog(models.Model):
         return f"{self.movie_title} by {user_display} at {self.download_time.strftime('%Y-%m-%d %H:%M')}"
 
 
-# 🔹 Install Tracker Model (Merged & Improved)
+# 🔹 Install Tracker Model (Updated)
 class InstallTracker(models.Model):
-    device_id = models.CharField(max_length=255, unique=True)  # Unique device
-    install_count = models.PositiveIntegerField(default=0)
-    deleted_count = models.PositiveIntegerField(default=0)
+    device_id = models.CharField(max_length=255, unique=True)  # Will hold model + OS version
+    install_count = models.IntegerField(default=0)
+    deleted_count = models.IntegerField(default=0)
     last_action = models.CharField(
-        max_length=50,
-        choices=[("install", "Install"), ("uninstall", "Uninstall")],
-        default="install"
+        max_length=20, choices=[("Install", "Install"), ("Uninstall", "Uninstall")]
     )
     updated_at = models.DateTimeField(auto_now=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.device_id} — {self.last_action}"
+        return f"{self.device_id}"
+

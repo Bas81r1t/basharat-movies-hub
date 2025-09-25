@@ -11,12 +11,11 @@ from django.db.models import Count, Q
 from itertools import chain
 import json
 import re
-import uuid
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.models import User
 
 
-# 🔹 Helper function
+# 🔹 Helper function: Extract episode number
 def extract_episode_number(title):
     match = re.search(r"[Ee]pisode\s*(\d+)", title)
     if match:
@@ -120,14 +119,15 @@ def download_movie(request, movie_id):
     return redirect(movie.download_link)
 
 
-# 🔹 Track Install - Unique Device Logic
+# 🔹 Track Install - Exact User-Agent as device_id
 @csrf_exempt
 @require_POST
 def track_install(request):
     try:
         data = json.loads(request.body)
-        device_id_str = data.get("device_id")
-        device_info = data.get("device_info", "")
+        device_info = data.get("device_info", "").strip()
+
+        device_id_str = device_info if device_info else request.META.get("HTTP_USER_AGENT", "").strip()
 
         if not device_id_str:
             return JsonResponse({"status": "error", "message": "Device ID missing"}, status=400)
@@ -135,16 +135,14 @@ def track_install(request):
         tracker, created = InstallTracker.objects.get_or_create(device_id=device_id_str)
 
         if created:
-            # ✅ Pehli baar naya device install kare
             tracker.install_count = 1
             tracker.deleted_count = 0
         else:
-            if tracker.last_action == "install":
-                # ✅ Agar same device already install hai → ignore (no +1)
-                pass
-            elif tracker.last_action == "uninstall":
-                # ✅ Agar uninstall ke baad dobara install kare → bas restore karo
+            if tracker.last_action.lower() == "install":
+                pass  # already installed
+            elif tracker.last_action.lower() == "uninstall":
                 tracker.install_count = 1
+                tracker.deleted_count = 0  # ✅ reset deleted count after reinstall
 
         tracker.device_info = device_info or tracker.device_info
         tracker.last_action = "install"
@@ -156,13 +154,14 @@ def track_install(request):
         return JsonResponse({"status": "error", "message": str(e)}, status=500)
 
 
-# 🔹 Track Uninstall
 @csrf_exempt
 @require_POST
 def track_uninstall(request):
     try:
         data = json.loads(request.body)
-        device_id_str = data.get("device_id")
+        device_info = data.get("device_info", "").strip()
+
+        device_id_str = device_info if device_info else request.META.get("HTTP_USER_AGENT", "").strip()
 
         if not device_id_str:
             return JsonResponse({"status": "error", "message": "Device ID missing"}, status=400)
@@ -170,12 +169,12 @@ def track_uninstall(request):
         tracker, created = InstallTracker.objects.get_or_create(device_id=device_id_str)
 
         if created:
-            # Uninstall bina install ke → mark deleted
             tracker.install_count = 0
             tracker.deleted_count = 1
         else:
-            tracker.deleted_count += 1
-            tracker.install_count = 0  # uninstall ke baad device inactive
+            if tracker.last_action.lower() != "uninstall":
+                tracker.deleted_count += 1  # only increment once per uninstall cycle
+            tracker.install_count = 0
 
         tracker.last_action = "uninstall"
         tracker.save()
@@ -186,6 +185,7 @@ def track_uninstall(request):
         return JsonResponse({"status": "error", "message": str(e)}, status=500)
 
 
+
 # 🔹 Admin Dashboard View
 @staff_member_required
 def custom_admin_dashboard(request):
@@ -193,7 +193,6 @@ def custom_admin_dashboard(request):
     total_movies = Movie.objects.count()
     total_downloads = DownloadLog.objects.count()
 
-    # ✅ Count only distinct devices jinke last_action = install
     total_installs = InstallTracker.objects.filter(last_action="install").count()
     total_uninstalls = InstallTracker.objects.filter(last_action="uninstall").count()
 

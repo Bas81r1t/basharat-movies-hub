@@ -1,9 +1,10 @@
 from django.contrib import admin
 from django.contrib.auth import get_user_model
-from django.db.models import Count, Sum
+from django.db.models import Count
 from .models import Playlist, Movie, DownloadLog, InstallTracker, Category
 
 User = get_user_model()
+
 
 class MyAdminSite(admin.AdminSite):
     site_header = "Basharat Movies Hub Admin"
@@ -11,8 +12,7 @@ class MyAdminSite(admin.AdminSite):
     index_title = "Dashboard"
 
     def index(self, request, extra_context=None):
-        total_installs = InstallTracker.objects.aggregate(total=Sum('install_count'))['total'] or 0
-        total_uninstalls = InstallTracker.objects.aggregate(total=Sum('deleted_count'))['total'] or 0
+        total_installs = InstallTracker.objects.count()
         total_movies = Movie.objects.count()
         total_users = User.objects.count()
         total_downloads = DownloadLog.objects.count()
@@ -27,7 +27,6 @@ class MyAdminSite(admin.AdminSite):
 
         ctx = {
             "total_installs": total_installs,
-            "total_uninstalls": total_uninstalls,
             "total_movies": total_movies,
             "total_users": total_users,
             "total_downloads": total_downloads,
@@ -39,7 +38,9 @@ class MyAdminSite(admin.AdminSite):
             ctx.update(extra_context)
         return super().index(request, extra_context=ctx)
 
+
 admin_site = MyAdminSite(name="myadmin")
+
 
 @admin.register(Movie, site=admin_site)
 class MovieAdmin(admin.ModelAdmin):
@@ -54,12 +55,13 @@ class MovieAdmin(admin.ModelAdmin):
             return format_html('<img src="{}" width="50" height="50" />', obj.poster.url)
         return 'No Poster'
     poster_tag.short_description = 'Poster'
-    poster_tag.allow_tags = True
+
 
 @admin.register(Playlist, site=admin_site)
 class PlaylistAdmin(admin.ModelAdmin):
     list_display = ('name', 'id')
     search_fields = ('name',)
+
 
 @admin.register(DownloadLog, site=admin_site)
 class DownloadLogAdmin(admin.ModelAdmin):
@@ -68,19 +70,14 @@ class DownloadLogAdmin(admin.ModelAdmin):
     ordering = ("-download_time",)
     search_fields = ("movie_title", "username", "ip_address")
 
+
 @admin.register(InstallTracker, site=admin_site)
 class InstallTrackerAdmin(admin.ModelAdmin):
-    list_display = (
-        "device_id",
-        "install_count",
-        "deleted_count",
-        "last_action",
-        "updated_at",
-        "created_at",
-    )
-    search_fields = ("device_id",)
+    list_display = ("device_id", "device_name", "install_count", "last_action", "updated_at", "created_at")
+    search_fields = ("device_id", "device_name")
     list_filter = ("last_action", "updated_at", "created_at")
     ordering = ("-updated_at",)
+
 
 @admin.register(Category, site=admin_site)
 class CategoryAdmin(admin.ModelAdmin):

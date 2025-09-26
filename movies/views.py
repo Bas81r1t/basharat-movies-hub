@@ -119,49 +119,29 @@ def download_movie(request, movie_id):
     return redirect(movie.download_link)
 
 
-# 🔹 Track Install - Exact User-Agent as device_id
+# 🔹 Detect Device Name
+def detect_device_name(user_agent: str) -> str:
+    ua = user_agent.lower()
+    if "windows" in ua:
+        return "Windows PC/Laptop"
+    elif "android" in ua:
+        return "Android"
+    elif "iphone" in ua or "ipad" in ua or "ios" in ua:
+        return "iOS"
+    elif "mac" in ua:
+        return "Mac"
+    else:
+        return "Unknown"
+
+
+# 🔹 Track Install (No Uninstall)
 @csrf_exempt
 @require_POST
 def track_install(request):
     try:
         data = json.loads(request.body)
-        device_info = data.get("device_info", "").strip()
-
-        device_id_str = device_info if device_info else request.META.get("HTTP_USER_AGENT", "").strip()
-
-        if not device_id_str:
-            return JsonResponse({"status": "error", "message": "Device ID missing"}, status=400)
-
-        tracker, created = InstallTracker.objects.get_or_create(device_id=device_id_str)
-
-        if created:
-            tracker.install_count = 1
-            tracker.deleted_count = 0
-        else:
-            if tracker.last_action.lower() == "install":
-                pass  # already installed
-            elif tracker.last_action.lower() == "uninstall":
-                tracker.install_count = 1
-                tracker.deleted_count = 0  # ✅ reset deleted count after reinstall
-
-        tracker.device_info = device_info or tracker.device_info
-        tracker.last_action = "install"
-        tracker.save()
-
-        return JsonResponse({"status": "success", "message": "Install tracked"})
-
-    except Exception as e:
-        return JsonResponse({"status": "error", "message": str(e)}, status=500)
-
-
-@csrf_exempt
-@require_POST
-def track_uninstall(request):
-    try:
-        data = json.loads(request.body)
-        device_info = data.get("device_info", "").strip()
-
-        device_id_str = device_info if device_info else request.META.get("HTTP_USER_AGENT", "").strip()
+        device_id_str = data.get("device_id")
+        device_name = data.get("device_name") or detect_device_name(request.META.get("HTTP_USER_AGENT", ""))
 
         if not device_id_str:
             return JsonResponse({"status": "error", "message": "Device ID missing"}, status=400)
@@ -169,21 +149,15 @@ def track_uninstall(request):
         tracker, created = InstallTracker.objects.get_or_create(device_id=device_id_str)
 
         if created:
-            tracker.install_count = 0
-            tracker.deleted_count = 1
-        else:
-            if tracker.last_action.lower() != "uninstall":
-                tracker.deleted_count += 1  # only increment once per uninstall cycle
-            tracker.install_count = 0
+            tracker.install_count = InstallTracker.objects.count()
+            tracker.device_name = device_name
+            tracker.last_action = "install"
+            tracker.save()
 
-        tracker.last_action = "uninstall"
-        tracker.save()
-
-        return JsonResponse({"status": "success", "message": "Uninstall tracked"})
+        return JsonResponse({"status": "success", "message": "Install tracked", "device": device_name})
 
     except Exception as e:
         return JsonResponse({"status": "error", "message": str(e)}, status=500)
-
 
 
 # 🔹 Admin Dashboard View
@@ -193,8 +167,8 @@ def custom_admin_dashboard(request):
     total_movies = Movie.objects.count()
     total_downloads = DownloadLog.objects.count()
 
-    total_installs = InstallTracker.objects.filter(last_action="install").count()
-    total_uninstalls = InstallTracker.objects.filter(last_action="uninstall").count()
+    # ✅ Unique devices only
+    total_installs = InstallTracker.objects.values('device_id').distinct().count()
 
     recent_installs = InstallTracker.objects.order_by('-updated_at')[:5]
     top_movies = DownloadLog.objects.values('movie_title').annotate(download_count=Count('movie_title')).order_by('-download_count')[:5]
@@ -205,7 +179,6 @@ def custom_admin_dashboard(request):
         'total_movies': total_movies,
         'total_downloads': total_downloads,
         'total_installs': total_installs,
-        'total_uninstalls': total_uninstalls,
         'recent_installs': recent_installs,
         'top_movies': top_movies,
         'recent_downloads': recent_downloads,

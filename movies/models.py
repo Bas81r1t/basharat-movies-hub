@@ -1,8 +1,6 @@
 from django.db import models
 from django.utils import timezone
 from cloudinary.models import CloudinaryField
-import uuid
-
 
 # 🔹 Category Model
 class Category(models.Model):
@@ -52,17 +50,14 @@ class DownloadLog(models.Model):
         return f"{self.movie_title} by {user_display} at {self.download_time.strftime('%Y-%m-%d %H:%M')}"
 
 
-# 🔹 Install Tracker Model (Updated)
+# 🔹 Install Tracker Model (Unique Installs Only)
 class InstallTracker(models.Model):
-    device_id = models.CharField(max_length=255, unique=True)  # Will hold model + OS version
-    install_count = models.IntegerField(default=0)
-    deleted_count = models.IntegerField(default=0)
-    last_action = models.CharField(
-        max_length=20, choices=[("Install", "Install"), ("Uninstall", "Uninstall")]
-    )
+    device_id = models.CharField(max_length=255, unique=True)  # unique device
+    device_name = models.CharField(max_length=100, blank=True, null=True)  # Android / iOS / Windows PC/Laptop
+    install_count = models.PositiveIntegerField(default=1)  # Always 1 for unique installs
+    last_action = models.CharField(max_length=20, default="Install")
     updated_at = models.DateTimeField(auto_now=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.device_id}"
-
+        return f"{self.device_id} ({self.device_name or 'Unknown'})"

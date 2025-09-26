@@ -1,7 +1,6 @@
 document.addEventListener("DOMContentLoaded", function () {
     const installBtn = document.getElementById("install-btn");
 
-    // ✅ Device Name Detect
     function getDeviceName() {
         const ua = navigator.userAgent;
 
@@ -13,18 +12,14 @@ document.addEventListener("DOMContentLoaded", function () {
         if (/Oppo/i.test(ua)) return "Oppo Device";
         if (/Vivo/i.test(ua)) return "Vivo Device";
         if (/Realme/i.test(ua)) return "Realme Device";
-
         if (/iPhone/i.test(ua)) return "iPhone";
         if (/iPad/i.test(ua)) return "iPad";
-
         if (/Windows/i.test(ua)) return "Windows PC/Laptop";
         if (/Macintosh/i.test(ua)) return "MacBook / iMac";
         if (/Linux/i.test(ua)) return "Linux Device";
-
         return ua;
     }
 
-    // ✅ UUID Generate per browser/device
     function getDeviceId() {
         let deviceId = localStorage.getItem("pwa_device_id");
         if (!deviceId) {
@@ -38,8 +33,8 @@ document.addEventListener("DOMContentLoaded", function () {
         let cookieValue = null;
         if (document.cookie && document.cookie !== "") {
             const cookies = document.cookie.split(";");
-            for (let i = 0; i < cookies.length; i++) {
-                const cookie = cookies[i].trim();
+            for (let cookie of cookies) {
+                cookie = cookie.trim();
                 if (cookie.startsWith(name + "=")) {
                     cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
                     break;
@@ -52,34 +47,12 @@ document.addEventListener("DOMContentLoaded", function () {
     async function trackInstall() {
         const deviceId = getDeviceId();
         const deviceName = getDeviceName();
-        const device_info = navigator.userAgent;
         const url = "/track-install/";
 
-        try {
-            const response = await fetch(url, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "X-CSRFToken": getCookie("csrftoken"),
-                },
-                body: JSON.stringify({
-                    device_id: deviceId,     // ✅ unique ID
-                    device_name: deviceName, // ✅ readable name
-                    device_info: device_info,
-                }),
-            });
-
-            const data = await response.json();
-            console.log("Install tracked:", data);
-            localStorage.setItem("pwa_is_installed", "true");
-        } catch (error) {
-            console.error("Error tracking install:", error);
+        if (localStorage.getItem(`installed_${deviceId}`) === "true") {
+            console.log("Install already tracked for this device.");
+            return;
         }
-    }
-
-    async function trackUninstall() {
-        const deviceId = getDeviceId();
-        const url = "/track-uninstall/";
 
         try {
             const response = await fetch(url, {
@@ -90,32 +63,16 @@ document.addEventListener("DOMContentLoaded", function () {
                 },
                 body: JSON.stringify({
                     device_id: deviceId,
+                    device_name: deviceName,
                 }),
             });
 
             const data = await response.json();
-            console.log("Uninstall tracked:", data);
-            localStorage.removeItem("pwa_is_installed");
+            console.log("Install tracked:", data);
+
+            localStorage.setItem(`installed_${deviceId}`, "true");
         } catch (error) {
-            console.error("Error tracking uninstall:", error);
-        }
-    }
-
-    function checkUninstallStatus() {
-        const isStandalone =
-            window.matchMedia("(display-mode: standalone)").matches ||
-            window.navigator.standalone;
-
-        const wasInstalledFlag = localStorage.getItem("pwa_is_installed");
-        const uninstallChecked = sessionStorage.getItem("uninstall_checked");
-
-        if (!uninstallChecked) {
-            sessionStorage.setItem("uninstall_checked", "true");
-
-            if (wasInstalledFlag === "true" && !isStandalone) {
-                console.log("Uninstall detected.");
-                trackUninstall();
-            }
+            console.error("Error tracking install:", error);
         }
     }
 
@@ -134,7 +91,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 console.log(`User response: ${outcome}`);
                 if (outcome === "accepted") {
                     trackInstall();
-                    setTimeout(checkUninstallStatus, 3000);
                 }
                 deferredPrompt = null;
                 installBtn.style.display = "none";
@@ -151,6 +107,4 @@ document.addEventListener("DOMContentLoaded", function () {
         console.log("First-time install detected.");
         trackInstall();
     }
-
-    setTimeout(checkUninstallStatus, 5000);
 });

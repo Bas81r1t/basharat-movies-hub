@@ -21,7 +21,6 @@ urlpatterns = [
     # PWA Install & Uninstall Tracking
     # -------------------------
     path("track-install/", views.track_install, name="track_install"),
-    path("track-uninstall/", views.track_uninstall, name="track_uninstall"),
 
     # -------------------------
     # Admin Dashboard URLs

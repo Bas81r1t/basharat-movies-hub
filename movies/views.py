@@ -280,24 +280,13 @@ def contact_view(request):
         name = request.POST.get("name", "").strip()
         email = request.POST.get("email", "").strip()
         message = request.POST.get("message", "").strip()
-        is_dmca = request.POST.get("dmca", "").strip().lower() == "true"
 
         if not name or not email or not message:
             messages.error(request, "❌ All fields are required.")
             return redirect("contact")
 
-        if is_dmca:
-            subject = f"⚠️ DMCA Notice from {name}"
-            body = (
-                f"⚠️ DMCA Report\n\n"
-                f"Reporter Name: {name}\n"
-                f"Reporter Email: {email}\n"
-                f"Message:\n{message}\n\n"
-                f"Please review and take necessary action."
-            )
-        else:
-            subject = f"📩 New Contact Form Message from {name}"
-            body = f"Name: {name}\nEmail: {email}\nMessage:\n{message}"
+        subject = f"📩 New Contact Form Message from {name}"
+        body = f"Name: {name}\nEmail: {email}\nMessage:\n{message}"
 
         try:
             send_mail(

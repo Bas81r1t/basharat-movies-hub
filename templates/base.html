@@ -28,15 +28,10 @@
             overflow-x: hidden;
         }
 
-        /* Lenis wrapper - FIXED: Removed properties causing modal issues */
         #lenis-wrapper {
             min-height: 100vh;
             display: flex;
             flex-direction: column;
-            /* YEH DO LINES HATA DI HAIN JO MODAL KO FREEZE KARTI THI: */
-            /* will-change: transform; */
-            /* backface-visibility: hidden; */
-            /* perspective: 1000px; */
         }
 
         main {
@@ -51,7 +46,6 @@
             padding: 20px 0;
         }
 
-        /* Scroll section animations */
         .scroll-section {
             opacity: 0;
             transform: translateY(30px);
@@ -62,7 +56,6 @@
             transform: translateY(0);
         }
 
-        /* Footer link hover */
         footer a {
             color: #4da6ff;
             transition: color 0.3s ease;
@@ -71,14 +64,12 @@
             color: #1a73e8;
         }
 
-        /* Navbar scroll shadow */
         .navbar-scrolled {
             background-color: rgba(34,34,34,0.95) !important;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
             transition: all 0.3s ease-in-out;
         }
 
-        /* Install Button */
         #install-btn {
             display: none;
             position: fixed;
@@ -96,22 +87,21 @@
             background-color: #1a73e8;
         }
         
-        /* Movie Card Styles */
         .movie-card {
             background-color: #2e3032;
             border-radius: 12px;
-            box-shadow: 0 0 5px rgba(255, 255, 255, 0.5); /* Darker white glow */
+            box-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
             transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .movie-card:hover {
-            transform: scale(1.02); /* Subtle hover effect */
-            box-shadow: 0 0 10px rgba(255, 255, 255, 0.7); /* Stronger white glow on hover */
+            transform: scale(1.02);
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.7);
         }
 
         .movie-card:active {
-            box-shadow: 0 0 15px rgba(255, 0, 0, 0.7); /* Red glow on click */
+            box-shadow: 0 0 15px rgba(255, 0, 0, 0.7);
         }
 
         .card-title {
@@ -120,9 +110,8 @@
             text-overflow: ellipsis;
         }
 
-        /* --- Custom Styles for Request Button & Modal --- */
         .btn-request {
-            background-color: #0d6efd; /* Bootstrap Blue (Primary) */
+            background-color: #0d6efd;
             border-color: #0d6efd;
             color: white;
             font-weight: bold;
@@ -134,9 +123,7 @@
             border-color: #0a58ca;
         }
         
-        /* Modal custom dark style */
         .modal {
-            /* HIGH Z-INDEX: Ensures modal is above all other content layers */
             z-index: 1060 !important; 
         }
 
@@ -173,7 +160,7 @@
 
     <div id="lenis-wrapper">
 
-        <!-- Navbar (No change) -->
+        <!-- Navbar -->
         <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
             <div class="container-fluid">
                 <a class="navbar-brand" href="/">🎬 Basharat Movies Hub</a>
@@ -195,17 +182,11 @@
             </div>
         </nav>
 
-        <!-- Main Content -->
         <main class="container my-4">
             
-            <!-- Movie Request Button -->
             {% if request.resolver_match.view_name == 'home' %}
                 <div class="request-button-container">
-                    <button 
-                        id="openRequestModal"
-                        class="btn btn-primary btn-request"
-                        type="button"
-                    >
+                    <button id="openRequestModal" class="btn btn-primary btn-request" type="button">
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-send-plus-fill me-2" viewBox="0 0 16 16">
                             <path d="M15.964.686a.5.5 0 0 0-.65-.65L.767 5.724l-.004.004-.122.413l.083.275c.01.03.023.058.04.085l.775 1.549 4.966-.717-3.321 3.321 4.757 2.054 2.227 4.183.023.048.018.066L12.44 16.32a.6.6 0 0 0 .524-.035l3.868-6.973a.4.4 0 0 0-.007-.492l-4.18-2.227 4.162-4.162.775 1.55a.3.3 0 0 1 .04.085l.083.275-.122.413-.004.004zM16 12.5a3.5 3.5 0 1 1-7 0 3.5 3.5 0 0 1 7 0m-3.5-2a.5.5 0 0 0-.5.5v1h-1a.5.5 0 0 0 0 1h1v1a.5.5 0 0 0 1 0v-1h1a.5.5 0 0 0 0-1h-1v-1a.5.5 0 0 0-.5-.5"/>
                         </svg>
@@ -214,7 +195,6 @@
                 </div>
             {% endif %}
             
-            <!-- Django Messages -->
             {% if messages %}
                 <div class="alert-container mb-4">
                     {% for message in messages %}
@@ -230,7 +210,6 @@
 
         </main>
 
-        <!-- Footer (No change) -->
         <footer>
             <p class="mb-1">© 2025 Basharat Movies Hub | Made ❤️ by Basharat</p>
             <div class="mt-3" style="font-size:14px;color:#aaa;max-width:800px;margin:auto;line-height:1.6;">
@@ -250,9 +229,7 @@
             </div>
         </footer>
 
-        <!-- PWA Install Button (No change) -->
         <button id="install-btn">Install App</button>
-
 
         <!-- Movie Request Modal -->
         <div class="modal fade" id="requestModal" tabindex="-1" aria-labelledby="requestModalLabel" aria-hidden="true">
@@ -267,7 +244,7 @@
                         <form id="movieRequestForm" action="{% url 'movie_request' %}" method="post">
                             {% csrf_token %}
                             <div class="mb-3">
-                                <label for="movie_name" class="form-label">Movie Ka Naam Enter Kare ! </label>
+                                <label for="movie_name" class="form-label">Movie Ka Naam Enter Kare !</label>
                                 <input type="text" id="movie_name" name="movie_name" required 
                                        class="form-control bg-dark text-white border-secondary"
                                        placeholder="जैसे: Jawan या Pathaan">
@@ -278,9 +255,8 @@
                                        class="form-control bg-dark text-white border-secondary"
                                        placeholder="आपका-नाम@example.com">
                             </div>
-                            <!-- Submit button with a loading indicator -->
                             <button type="submit" id="submitRequestBtn" class="btn btn-primary w-100">
-                                Send Request
+                                Request Send Kare
                             </button>
                         </form>
                     </div>
@@ -289,82 +265,68 @@
         </div>
         <!-- End of Modal -->
 
-    </div> <!-- #lenis-wrapper -->
+    </div>
 
-    <!-- Bootstrap JS (No change) -->
+    <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-    <!-- PWA Install Tracker JS (No change) -->
+    <!-- PWA Install Tracker JS -->
     <script src="{% static 'js/install_tracker.js' %}"></script>
 
-    <!-- Custom JS (No change) -->
+    <!-- Custom JS -->
     <script src="{% static 'js/index.js' %}"></script>
 
-    <!-- JavaScript for Modal Trigger and AJAX Submission (No change, but will work now) -->
+    <!-- AJAX Form Submission -->
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const modalElement = document.getElementById('requestModal');
-            const btn = document.getElementById('openRequestModal');
-            const form = document.getElementById('movieRequestForm');
-            const submitBtn = document.getElementById('submitRequestBtn');
+    document.addEventListener('DOMContentLoaded', function() {
+        const modalElement = document.getElementById('requestModal');
+        const btn = document.getElementById('openRequestModal');
+        const form = document.getElementById('movieRequestForm');
+        const submitBtn = document.getElementById('submitRequestBtn');
 
-            if (btn && modalElement) {
-                const requestModal = new bootstrap.Modal(modalElement);
-                
-                // 1. Show modal on button click
-                btn.addEventListener('click', function() {
-                    requestModal.show();
+        if (btn && modalElement) {
+            const requestModal = new bootstrap.Modal(modalElement);
+
+            btn.addEventListener('click', function() {
+                requestModal.show();
+            });
+
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Requesting...';
+
+                const formData = new FormData(form);
+
+                fetch(form.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        "X-CSRFToken": document.querySelector('[name=csrfmiddlewaretoken]').value
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === "success") {
+                        requestModal.hide();
+                        alert("✅ Movie request successfully sent!");
+                        form.reset();
+                    } else {
+                        alert("❌ Error: " + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error(error);
+                    alert("❌ Network Error: Could not send request.");
+                })
+                .finally(() => {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = 'Request Send Kare';
                 });
-
-                // 2. Handle form submission via AJAX
-                form.addEventListener('submit', function(e) {
-                    e.preventDefault(); // Default form submission rokna
-                    
-                    // Loading state start
-                    submitBtn.disabled = true;
-                    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Requesting...';
-
-                    const formData = new FormData(form);
-
-                    fetch(form.action, {
-                        method: 'POST',
-                        body: formData,
-                    })
-                    .then(response => {
-                        if (response.ok) {
-                            const contentType = response.headers.get("content-type");
-                            if (contentType && contentType.indexOf("application/json") !== -1) {
-                                return response.json().then(data => {
-                                    console.log('Request successful:', data);
-                                    requestModal.hide();
-                                    alert('✅ Movie Request successfully sent! Thank you, we will try to add it soon.'); 
-                                    form.reset();
-                                });
-                            } else {
-                                requestModal.hide();
-                                alert('✅ Movie Request successfully sent! Thank you, we will try to add it soon.'); 
-                                form.reset();
-                            }
-                        } else {
-                            console.error('Request failed with status:', response.status);
-                            alert(`❌ Request Failed: Server responded with status ${response.status}. Check console for details or ensure Django 'movie_request' URL is correct.`);
-                            response.text().then(text => console.error("Server Response Text:", text));
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Network or Fetch Error:', error);
-                        alert('❌ Error: Could not reach the server. Please check the URL and console.');
-                    })
-                    .finally(() => {
-                        // Loading state end
-                        submitBtn.disabled = false;
-                        submitBtn.innerHTML = 'रिक्वेस्ट भेजें';
-                    });
-                });
-            } else {
-                console.error("Movie Request elements not found. Check IDs: openRequestModal, requestModal.");
-            }
-        });
+            });
+        }
+    });
     </script>
 
 </body>

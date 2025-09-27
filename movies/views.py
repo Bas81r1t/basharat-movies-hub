@@ -1,19 +1,21 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from .models import Playlist, Movie, DownloadLog, InstallTracker, Category
 from django.http import JsonResponse, HttpResponse
+from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET, require_POST
 from django.utils import timezone
 from django.core.mail import send_mail, BadHeaderError
 from django.conf import settings
 from django.contrib import messages
-from django.db.models import Count, Q, Sum
+from django.db.models import Count, Q
 from itertools import chain
 import json
 import re
 import uuid
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.models import User
+
 
 # -------------------------------
 # Helper function: Episode number
@@ -26,6 +28,7 @@ def extract_episode_number(title):
     if match:
         return int(match.group())
     return float("inf")
+
 
 # ----------------------------------------------------------------------
 # 🎯 TEST EMAIL VIEW
@@ -43,34 +46,37 @@ def test_email(request):
     except Exception as e:
         return HttpResponse(f"❌ Error sending email: {str(e)}")
 
+
 # ----------------------------------------------------------------------
 # 🎬 MOVIE REQUEST VIEW
 # ----------------------------------------------------------------------
-@csrf_exempt
+@csrf_protect
+@require_POST
 def movie_request(request):
-    if request.method == "POST":
+    try:
         movie_name = request.POST.get("movie_name", "").strip()
         user_email = request.POST.get("user_email", "").strip()
 
         if not movie_name:
-            return JsonResponse({"status": "error", "message": "Movie name required"}, status=400)
+            return JsonResponse({"status": "error", "message": "Movie name is required."}, status=400)
 
         subject = f"🎬 NEW MOVIE REQUEST: {movie_name}"
         body = f"User is requesting: {movie_name}\nContact Email: {user_email or 'Not provided'}"
 
-        try:
-            send_mail(
-                subject,
-                body,
-                settings.EMAIL_HOST_USER,
-                [settings.EMAIL_HOST_USER],
-                fail_silently=False
-            )
-            return JsonResponse({"status": "success", "message": "Request sent successfully!"})
-        except Exception as e:
-            return JsonResponse({"status": "error", "message": str(e)}, status=500)
+        send_mail(
+            subject,
+            body,
+            settings.EMAIL_HOST_USER,
+            [settings.EMAIL_HOST_USER],
+            fail_silently=False,
+        )
+        return JsonResponse({"status": "success", "message": "Request sent successfully!"})
 
-    return JsonResponse({"status": "error", "message": "Invalid method"}, status=405)
+    except BadHeaderError:
+        return JsonResponse({"status": "error", "message": "Invalid header found."}, status=400)
+    except Exception as e:
+        return JsonResponse({"status": "error", "message": f"Email sending failed: {e}"}, status=500)
+
 
 # ----------------------------------------------------------------------
 # HOME VIEW
@@ -103,10 +109,12 @@ def home(request):
         },
     )
 
+
 def playlist_detail(request, playlist_id):
     playlist = get_object_or_404(Playlist, id=playlist_id)
     movies = Movie.objects.filter(playlist=playlist).order_by('-created_at')
     return render(request, "playlist_detail.html", {"playlist": playlist, "movies": movies})
+
 
 def category_detail(request, category_id):
     category = get_object_or_404(Category, id=category_id)
@@ -129,15 +137,18 @@ def category_detail(request, category_id):
         "query": query,
     })
 
+
 def movie_detail(request, movie_id):
     movie = get_object_or_404(Movie, id=movie_id)
     return render(request, "movie_detail.html", {"movie": movie})
+
 
 def get_client_ip(request):
     x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
     if x_forwarded_for:
         return x_forwarded_for.split(",")[0]
     return request.META.get("REMOTE_ADDR")
+
 
 def download_movie(request, movie_id):
     movie = get_object_or_404(Movie, id=movie_id)
@@ -156,6 +167,7 @@ def download_movie(request, movie_id):
     )
     return redirect(movie.download_link)
 
+
 def detect_device_name(user_agent: str) -> str:
     ua = user_agent.lower()
     if "windows" in ua:
@@ -168,6 +180,7 @@ def detect_device_name(user_agent: str) -> str:
         return "Mac"
     else:
         return "Unknown"
+
 
 @csrf_exempt
 @require_POST
@@ -215,6 +228,7 @@ def track_install(request):
     except Exception as e:
         return JsonResponse({"status": "error", "message": str(e)}, status=500)
 
+
 @csrf_exempt
 @require_POST
 def track_uninstall(request):
@@ -245,6 +259,7 @@ def track_uninstall(request):
     except Exception as e:
         return JsonResponse({'success': False, 'message': 'Server error'}, status=500)
 
+
 @staff_member_required
 def custom_admin_dashboard(request):
     total_users = User.objects.count()
@@ -267,10 +282,12 @@ def custom_admin_dashboard(request):
     }
     return render(request, 'admin/index.html', context)
 
+
 @staff_member_required
 def reset_install_data(request):
     InstallTracker.objects.all().delete()
     return JsonResponse({"status": "success", "message": "All install data has been reset."})
+
 
 # -------------------------------
 # CONTACT FORM (with DMCA)

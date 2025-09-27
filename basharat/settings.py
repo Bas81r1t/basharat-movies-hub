@@ -13,14 +13,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # ------------------------------
 # ✅ Load .env file
 # ------------------------------
-# Load_dotenv sirf local chalaate waqt .env file ko load karta hai.
 load_dotenv(dotenv_path=os.path.join(BASE_DIR, '.env'))
 
 # ------------------------------
 # ✅ Secret Key & Debug Mode
 # ------------------------------
-# CRITICAL FIX: Added .strip() to load variables safely
-SECRET_KEY = config('SECRET_KEY', default='django-insecure-default-key').strip() 
+SECRET_KEY = config('SECRET_KEY', default='django-insecure-default-key').strip()
 DEBUG = config('DEBUG', default=False, cast=bool)
 
 ALLOWED_HOSTS = [
@@ -94,7 +92,7 @@ WSGI_APPLICATION = 'basharat.wsgi.application'
 # ------------------------------
 DATABASES = {
     "default": dj_database_url.config(
-        default=config("DATABASE_URL").strip(), # Added .strip()
+        default=config("DATABASE_URL").strip(),
         conn_max_age=600,
         ssl_require=not DEBUG
     )
@@ -151,18 +149,17 @@ cloudinary.config(
 # ------------------------------
 # ✅ Email Configuration
 # ------------------------------
-# CRITICAL FIX: Added .strip() to all string configurations
 EMAIL_BACKEND = config('EMAIL_BACKEND', default='django.core.mail.backends.smtp.EmailBackend').strip()
 EMAIL_HOST = config('EMAIL_HOST', default='smtp.gmail.com').strip()
 EMAIL_PORT = config('EMAIL_PORT', cast=int, default=587)
 EMAIL_USE_TLS = config('EMAIL_USE_TLS', cast=bool, default=True)
-EMAIL_USE_SSL = False
-# Added timeout to prevent Gunicorn worker from crashing during slow connection
-EMAIL_TIMEOUT = 60 
-
-EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='bas81r1t@gmail.com').strip()
-EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='bugvgsxnvhqxrpoe').strip()
+EMAIL_USE_SSL = config('EMAIL_USE_SSL', cast=bool, default=False)
+EMAIL_HOST_USER = config('EMAIL_HOST_USER').strip()
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD').strip()
 DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default=EMAIL_HOST_USER).strip()
+EMAIL_TIMEOUT = 60
 
+# ------------------------------
 # ✅ Auto Field
+# ------------------------------
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

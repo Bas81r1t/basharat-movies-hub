@@ -2,21 +2,34 @@ from django.shortcuts import render, get_object_or_404, redirect
 from .models import Playlist, Movie, DownloadLog, InstallTracker, Category
 from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_GET, require_POST
 from django.utils import timezone
-from django.core.mail import send_mail
+from django.core.mail import send_mail, BadHeaderError
 from django.conf import settings
 from django.contrib import messages
-from django.db.models import Count, Q
+from django.db.models import Count, Q, Sum
 from itertools import chain
 import json
 import re
+import uuid
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.models import User
 
+# -------------------------------
+# Helper function: Episode number
+# -------------------------------
+def extract_episode_number(title):
+    match = re.search(r"[Ee]pisode\s*(\d+)", title)
+    if match:
+        return int(match.group(1))
+    match = re.search(r"\d+", title)
+    if match:
+        return int(match.group())
+    return float("inf")
+
 
 # ----------------------------------------------------------------------
-# 🎯 TEST EMAIL VIEW (for deployment verification)
+# 🎯 TEST EMAIL VIEW
 # ----------------------------------------------------------------------
 def test_email(request):
     try:
@@ -33,7 +46,7 @@ def test_email(request):
 
 
 # ----------------------------------------------------------------------
-# 🎬 UPDATED MOVIE REQUEST VIEW
+# 🎬 MOVIE REQUEST VIEW
 # ----------------------------------------------------------------------
 @csrf_exempt
 def movie_request(request):
@@ -63,18 +76,8 @@ def movie_request(request):
 
 
 # ----------------------------------------------------------------------
-# ⚙️ EXISTING VIEWS
+# HOME VIEW
 # ----------------------------------------------------------------------
-def extract_episode_number(title):
-    match = re.search(r"[Ee]pisode\s*(\d+)", title)
-    if match:
-        return int(match.group(1))
-    match = re.search(r"\d+", title)
-    if match:
-        return int(match.group())
-    return float("inf")
-
-
 def home(request):
     query = request.GET.get("q")
     all_playlists = Playlist.objects.all()
@@ -226,37 +229,32 @@ def track_install(request):
 @csrf_exempt
 @require_POST
 def track_uninstall(request):
-    if request.method == 'POST':
+    try:
+        data = json.loads(request.body)
+        device_id_str = data.get('device_id')
+
+        if not device_id_str:
+            return JsonResponse({'success': False, 'message': 'Device ID is required'}, status=400)
+
         try:
-            data = json.loads(request.body)
-            device_id_str = data.get('device_id')
+            tracker = InstallTracker.objects.get(device_id=device_id_str)
+            if tracker.install_count == 1:
+                tracker.install_count = 0
+                tracker.deleted_count += 1
+                tracker.last_action = 'uninstall'
+                tracker.updated_at = timezone.now()
+                tracker.save()
 
-            if not device_id_str:
-                return JsonResponse({'success': False, 'message': 'Device ID is required'}, status=400)
+            total_active_installs = InstallTracker.objects.filter(install_count=1).count()
 
-            try:
-                tracker = InstallTracker.objects.get(device_id=device_id_str)
+            return JsonResponse({'success': True, 'message': 'Uninstall tracked', 'total_active_installs': total_active_installs})
+        except InstallTracker.DoesNotExist:
+            return JsonResponse({'success': True, 'message': 'Tracker not found, but uninstall acknowledged'})
 
-                if tracker.install_count == 1:
-                    tracker.install_count = 0
-                    tracker.deleted_count += 1
-                    tracker.last_action = 'uninstall'
-                    tracker.updated_at = timezone.now()
-                    tracker.save()
-
-                total_active_installs = InstallTracker.objects.filter(install_count=1).count()
-
-                return JsonResponse({'success': True, 'message': 'Uninstall tracked', 'total_active_installs': total_active_installs})
-
-            except InstallTracker.DoesNotExist:
-                return JsonResponse({'success': True, 'message': 'Tracker not found, but uninstall acknowledged'})
-
-        except json.JSONDecodeError:
-            return JsonResponse({'success': False, 'message': 'Invalid JSON'}, status=400)
-        except Exception as e:
-            return JsonResponse({'success': False, 'message': 'Server error'}, status=500)
-
-    return JsonResponse({'success': False, 'message': 'Invalid request method'}, status=400)
+    except json.JSONDecodeError:
+        return JsonResponse({'success': False, 'message': 'Invalid JSON'}, status=400)
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': 'Server error'}, status=500)
 
 
 @staff_member_required
@@ -288,18 +286,32 @@ def reset_install_data(request):
     return JsonResponse({"status": "success", "message": "All install data has been reset."})
 
 
+# -------------------------------
+# CONTACT FORM (with DMCA)
+# -------------------------------
 def contact_view(request):
     if request.method == "POST":
         name = request.POST.get("name", "").strip()
         email = request.POST.get("email", "").strip()
         message = request.POST.get("message", "").strip()
+        is_dmca = request.POST.get("dmca", "").strip().lower() == "true"
 
         if not name or not email or not message:
             messages.error(request, "❌ All fields are required.")
             return redirect("contact")
 
-        subject = f"📩 New Contact Form Message from {name}"
-        body = f"Name: {name}\nEmail: {email}\nMessage:\n{message}"
+        if is_dmca:
+            subject = f"⚠️ DMCA Notice from {name}"
+            body = (
+                f"⚠️ DMCA Report\n\n"
+                f"Reporter Name: {name}\n"
+                f"Reporter Email: {email}\n"
+                f"Message:\n{message}\n\n"
+                f"Please review and take necessary action."
+            )
+        else:
+            subject = f"📩 New Contact Form Message from {name}"
+            body = f"Name: {name}\nEmail: {email}\nMessage:\n{message}"
 
         try:
             send_mail(

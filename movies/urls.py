@@ -1,7 +1,6 @@
 from django.urls import path
 from django.contrib import admin
 from . import views
-# Django के built-in auth views को import करें
 from django.contrib.auth import views as auth_views 
 
 urlpatterns = [
@@ -31,11 +30,9 @@ urlpatterns = [
     path("track_uninstall/", views.track_uninstall, name="track_uninstall"),
 
     # -------------------------
-    # Authentication Views (Fix for 'logout' NoReverseMatch)
+    # Authentication Views
     # -------------------------
-    # Note: 'login' view को '/login/' पर मैप करें
     path('login/', auth_views.LoginView.as_view(template_name='registration/login.html'), name='login'),
-    # 'logout' view को '/logout/' पर मैप करें
     path('logout/', auth_views.LogoutView.as_view(next_page='/'), name='logout'), 
 
     # -------------------------

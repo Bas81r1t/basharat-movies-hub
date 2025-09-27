@@ -1,6 +1,8 @@
 from django.urls import path
 from django.contrib import admin
 from . import views
+# Django के built-in auth views को import करें
+from django.contrib.auth import views as auth_views 
 
 urlpatterns = [
     # -------------------------
@@ -13,6 +15,11 @@ urlpatterns = [
     path("download/<int:movie_id>/", views.download_movie, name="download_movie"),
 
     # -------------------------
+    # Movie Request Endpoint
+    # -------------------------
+    path("request/", views.movie_request, name="movie_request"),
+
+    # -------------------------
     # Contact Form
     # -------------------------
     path("contact/", views.contact_view, name="contact"),
@@ -21,6 +28,15 @@ urlpatterns = [
     # PWA Install & Uninstall Tracking
     # -------------------------
     path("track-install/", views.track_install, name="track_install"),
+    path("track_uninstall/", views.track_uninstall, name="track_uninstall"),
+
+    # -------------------------
+    # Authentication Views (Fix for 'logout' NoReverseMatch)
+    # -------------------------
+    # Note: 'login' view को '/login/' पर मैप करें
+    path('login/', auth_views.LoginView.as_view(template_name='registration/login.html'), name='login'),
+    # 'logout' view को '/logout/' पर मैप करें
+    path('logout/', auth_views.LogoutView.as_view(next_page='/'), name='logout'), 
 
     # -------------------------
     # Admin Dashboard URLs

@@ -5,13 +5,19 @@ from decouple import config
 import cloudinary
 import dj_database_url
 
+# ------------------------------
 # ✅ Base Directory
+# ------------------------------
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# ✅ Load .env (local development)
+# ------------------------------
+# ✅ Load .env file
+# ------------------------------
 load_dotenv(dotenv_path=os.path.join(BASE_DIR, '.env'))
 
-# ✅ Secret Key & Debug
+# ------------------------------
+# ✅ Secret Key & Debug Mode
+# ------------------------------
 SECRET_KEY = config('SECRET_KEY', default='django-insecure-default-key')
 DEBUG = config('DEBUG', default=False, cast=bool)
 
@@ -19,10 +25,12 @@ ALLOWED_HOSTS = [
     'basharat-movies-hub.onrender.com',
     'localhost',
     '127.0.0.1',
-    'testserver'  # Testing ke liye add karo
+    'testserver'
 ]
 
+# ------------------------------
 # ✅ Installed Apps
+# ------------------------------
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -37,11 +45,14 @@ INSTALLED_APPS = [
     # Cloudinary
     'cloudinary',
     'cloudinary_storage',
+
     # SEO
     'django.contrib.sitemaps',
 ]
 
+# ------------------------------
 # ✅ Middleware
+# ------------------------------
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
@@ -55,7 +66,9 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'basharat.urls'
 
+# ------------------------------
 # ✅ Templates
+# ------------------------------
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -74,7 +87,9 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'basharat.wsgi.application'
 
+# ------------------------------
 # ✅ Database Configuration
+# ------------------------------
 DATABASES = {
     "default": dj_database_url.config(
         default=config("DATABASE_URL"),
@@ -83,7 +98,9 @@ DATABASES = {
     )
 }
 
+# ------------------------------
 # ✅ Password Validators
+# ------------------------------
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
     {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
@@ -91,47 +108,57 @@ AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
+# ------------------------------
 # ✅ Language & Timezone
+# ------------------------------
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'Asia/Kolkata'
 USE_I18N = True
 USE_TZ = True
 
+# ------------------------------
 # ✅ Static Files
+# ------------------------------
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
+# ------------------------------
 # ✅ Media Files
+# ------------------------------
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
+# ------------------------------
 # ✅ Cloudinary Configuration
+# ------------------------------
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 CLOUDINARY_STORAGE = {
-    'CLOUD_NAME': config('CLOUD_NAME'),
-    'API_KEY': config('API_KEY'),
-    'API_SECRET': config('API_SECRET'),
+    'CLOUD_NAME': config('CLOUD_NAME', default=''),
+    'API_KEY': config('API_KEY', default=''),
+    'API_SECRET': config('API_SECRET', default=''),
 }
 cloudinary.config(
-    cloud_name=config('CLOUD_NAME'),
-    api_key=config('API_KEY'),
-    api_secret=config('API_SECRET'),
+    cloud_name=config('CLOUD_NAME', default=''),
+    api_key=config('API_KEY', default=''),
+    api_secret=config('API_SECRET', default=''),
     secure=True
 )
 
+# ------------------------------
 # ✅ Email Configuration
+# ------------------------------
 EMAIL_BACKEND = config('EMAIL_BACKEND', default='django.core.mail.backends.smtp.EmailBackend').strip()
 EMAIL_HOST = config('EMAIL_HOST', default='smtp.gmail.com').strip()
 EMAIL_PORT = config('EMAIL_PORT', cast=int, default=587)
 EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
 EMAIL_USE_SSL = False
-EMAIL_HOST_USER = config('EMAIL_HOST_USER').strip()
-EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD').strip()
+EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='').strip()
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='').strip()
 DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default=EMAIL_HOST_USER).strip()
 
-
-
+# ------------------------------
 # ✅ Auto Field
+# ------------------------------
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

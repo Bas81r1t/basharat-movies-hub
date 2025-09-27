@@ -158,10 +158,10 @@ EMAIL_PORT = config('EMAIL_PORT', cast=int, default=587)
 EMAIL_USE_TLS = config('EMAIL_USE_TLS', cast=bool, default=True)
 EMAIL_USE_SSL = False
 # Added timeout to prevent Gunicorn worker from crashing during slow connection
-EMAIL_TIMEOUT = 30 
+EMAIL_TIMEOUT = 60 
 
 EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='bas81r1t@gmail.com').strip()
-EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='dxagtxtqfesjcyof').strip()
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='bugvgsxnvhqxrpoe').strip()
 DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default=EMAIL_HOST_USER).strip()
 
 # ✅ Auto Field

@@ -11,8 +11,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # ✅ Load .env (local development)
 load_dotenv(dotenv_path=os.path.join(BASE_DIR, '.env'))
 
-# ✅ Secret Key & Debug
-SECRET_KEY = config('SECRET_KEY', default='django-insecure-default-key')
+# ✅ Secret Key & Debug - CRITICAL: Added .strip()
+SECRET_KEY = config('SECRET_KEY', default='django-insecure-default-key').strip()
 # IMPORTANT: Render par DEBUG ko False rakho for production
 DEBUG = config('DEBUG', default=False, cast=bool) 
 
@@ -23,7 +23,7 @@ ALLOWED_HOSTS = [
     'testserver' 
 ]
 
-# (INSTALLED_APPS, MIDDLEWARE, TEMPLATES, WSGI_APPLICATION sections are unchanged)
+# (INSTALLED_APPS, MIDDLEWARE, ROOT_URLCONF, TEMPLATES, WSGI_APPLICATION sections are unchanged)
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -73,10 +73,9 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'basharat.wsgi.application'
 
-# (DATABASES, AUTH_PASSWORD_VALIDATORS, LANGUAGE_CODE sections are unchanged)
 DATABASES = {
     "default": dj_database_url.config(
-        default=config("DATABASE_URL"),
+        default=config("DATABASE_URL").strip(), # Added .strip()
         conn_max_age=600,
         ssl_require=not DEBUG
     )
@@ -94,7 +93,6 @@ TIME_ZONE = 'Asia/Kolkata'
 USE_I18N = True
 USE_TZ = True
 
-# (STATICFILES, MEDIA_FILES, CLOUDINARY sections are unchanged)
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
@@ -103,33 +101,31 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
+# ✅ Cloudinary Configuration - Added .strip() everywhere
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 CLOUDINARY_STORAGE = {
-    'CLOUD_NAME': config('CLOUD_NAME'),
-    'API_KEY': config('API_KEY'),
-    'API_SECRET': config('API_SECRET'),
+    'CLOUD_NAME': config('CLOUD_NAME').strip(),
+    'API_KEY': config('API_KEY').strip(),
+    'API_SECRET': config('API_SECRET').strip(),
 }
 cloudinary.config(
-    cloud_name=config('CLOUD_NAME'),
-    api_key=config('API_KEY'),
-    api_secret=config('API_SECRET'),
+    cloud_name=config('CLOUD_NAME').strip(),
+    api_key=config('API_KEY').strip(),
+    api_secret=config('API_SECRET').strip(),
     secure=True
 )
 
-
-# ✅ Email Configuration (CRITICAL: Added EMAIL_TIMEOUT)
-# Note: Use strip() only when loading config, not on the default value.
-EMAIL_BACKEND = config('EMAIL_BACKEND', default='django.core.mail.backends.smtp.EmailBackend')
-EMAIL_HOST = config('EMAIL_HOST', default='smtp.gmail.com')
+# ✅ Email Configuration - CRITICAL FIX: Added .strip()
+EMAIL_BACKEND = config('EMAIL_BACKEND', default='django.core.mail.backends.smtp.EmailBackend').strip()
+EMAIL_HOST = config('EMAIL_HOST', default='smtp.gmail.com').strip()
 EMAIL_PORT = config('EMAIL_PORT', cast=int, default=587)
 EMAIL_USE_TLS = config('EMAIL_USE_TLS', cast=bool, default=True)
 EMAIL_USE_SSL = False
-# Added timeout to prevent Gunicorn worker from crashing during slow connection
 EMAIL_TIMEOUT = 30 
 
-EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='bas81r1t@gmail.com')
-EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='dxagtxtqfesjcyof')
-DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default=EMAIL_HOST_USER)
+EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='bas81r1t@gmail.com').strip()
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='dxagtxtqfesjcyof').strip()
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default=EMAIL_HOST_USER).strip()
 
 # ✅ Auto Field
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

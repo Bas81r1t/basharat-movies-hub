@@ -42,6 +42,11 @@ urlpatterns = [
     path("admin/reset-install-data/", views.reset_install_data, name="reset_install_data"),
 
     # -------------------------
+    # Test Email URL
+    # -------------------------
+    path("test-email/", views.test_email, name="test_email"),
+
+    # -------------------------
     # Django Admin
     # -------------------------
     path("admin/", admin.site.urls),

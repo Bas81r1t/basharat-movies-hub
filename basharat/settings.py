@@ -125,11 +125,12 @@ cloudinary.config(
 EMAIL_BACKEND = config('EMAIL_BACKEND', default='django.core.mail.backends.smtp.EmailBackend').strip()
 EMAIL_HOST = config('EMAIL_HOST', default='smtp.gmail.com').strip()
 EMAIL_PORT = config('EMAIL_PORT', cast=int, default=587)
-EMAIL_USE_TLS = config('EMAIL_USE_TLS', cast=bool, default=True)
+EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
 EMAIL_USE_SSL = False
 EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='bas81r1t@gmail.com').strip()
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='dxagtxtqfesjcyof').strip()
 DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default=EMAIL_HOST_USER).strip()
+
 
 # ✅ Auto Field
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

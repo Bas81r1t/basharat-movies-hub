@@ -1,6 +1,6 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from .models import Playlist, Movie, DownloadLog, InstallTracker, Category
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from django.utils import timezone
@@ -13,6 +13,23 @@ import json
 import re
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.models import User
+
+
+# ----------------------------------------------------------------------
+# 🎯 TEST EMAIL VIEW (for deployment verification)
+# ----------------------------------------------------------------------
+def test_email(request):
+    try:
+        send_mail(
+            "Test Email from Basharat Movies Hub",
+            "✅ This is a test email to confirm email settings are working.",
+            settings.EMAIL_HOST_USER,
+            [settings.EMAIL_HOST_USER],
+            fail_silently=False,
+        )
+        return HttpResponse("✅ Email sent successfully!")
+    except Exception as e:
+        return HttpResponse(f"❌ Error sending email: {str(e)}")
 
 
 # ----------------------------------------------------------------------
@@ -46,9 +63,8 @@ def movie_request(request):
 
 
 # ----------------------------------------------------------------------
-# ⚙️ EXISTING VIEWS 
+# ⚙️ EXISTING VIEWS
 # ----------------------------------------------------------------------
-
 def extract_episode_number(title):
     match = re.search(r"[Ee]pisode\s*(\d+)", title)
     if match:

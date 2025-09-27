@@ -13,12 +13,14 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # ------------------------------
 # ✅ Load .env file
 # ------------------------------
+# Load_dotenv sirf local chalaate waqt .env file ko load karta hai.
 load_dotenv(dotenv_path=os.path.join(BASE_DIR, '.env'))
 
 # ------------------------------
 # ✅ Secret Key & Debug Mode
 # ------------------------------
-SECRET_KEY = config('SECRET_KEY', default='django-insecure-default-key')
+# CRITICAL FIX: Added .strip() to load variables safely
+SECRET_KEY = config('SECRET_KEY', default='django-insecure-default-key').strip() 
 DEBUG = config('DEBUG', default=False, cast=bool)
 
 ALLOWED_HOSTS = [
@@ -92,7 +94,7 @@ WSGI_APPLICATION = 'basharat.wsgi.application'
 # ------------------------------
 DATABASES = {
     "default": dj_database_url.config(
-        default=config("DATABASE_URL"),
+        default=config("DATABASE_URL").strip(), # Added .strip()
         conn_max_age=600,
         ssl_require=not DEBUG
     )
@@ -135,25 +137,29 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 # ------------------------------
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 CLOUDINARY_STORAGE = {
-    'CLOUD_NAME': config('CLOUD_NAME', default=''),
-    'API_KEY': config('API_KEY', default=''),
-    'API_SECRET': config('API_SECRET', default=''),
+    'CLOUD_NAME': config('CLOUD_NAME', default='').strip(),
+    'API_KEY': config('API_KEY', default='').strip(),
+    'API_SECRET': config('API_SECRET', default='').strip(),
 }
 cloudinary.config(
-    cloud_name=config('CLOUD_NAME', default=''),
-    api_key=config('API_KEY', default=''),
-    api_secret=config('API_SECRET', default=''),
+    cloud_name=config('CLOUD_NAME', default='').strip(),
+    api_key=config('API_KEY', default='').strip(),
+    api_secret=config('API_SECRET', default='').strip(),
     secure=True
 )
 
 # ------------------------------
 # ✅ Email Configuration
 # ------------------------------
+# CRITICAL FIX: Added .strip() to all string configurations
 EMAIL_BACKEND = config('EMAIL_BACKEND', default='django.core.mail.backends.smtp.EmailBackend').strip()
 EMAIL_HOST = config('EMAIL_HOST', default='smtp.gmail.com').strip()
 EMAIL_PORT = config('EMAIL_PORT', cast=int, default=587)
 EMAIL_USE_TLS = config('EMAIL_USE_TLS', cast=bool, default=True)
-EMAIL_USE_SSL = False  # Always False, do not set from env
+EMAIL_USE_SSL = False
+# Added timeout to prevent Gunicorn worker from crashing during slow connection
+EMAIL_TIMEOUT = 30 
+
 EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='bas81r1t@gmail.com').strip()
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='dxagtxtqfesjcyof').strip()
 DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default=EMAIL_HOST_USER).strip()

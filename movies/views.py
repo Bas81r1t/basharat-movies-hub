@@ -1,17 +1,14 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from .models import Playlist, Movie, DownloadLog, InstallTracker, Category
 from django.http import JsonResponse, HttpResponse
-from django.views.decorators.csrf import csrf_protect, csrf_exempt
-from django.views.decorators.http import require_GET, require_POST
+from django.views.decorators.csrf import csrf_exempt 
+from django.views.decorators.http import require_POST
 from django.utils import timezone
-from django.core.mail import send_mail, BadHeaderError
-from django.conf import settings
-from django.contrib import messages
+# Removed: send_mail, settings, messages (since contact_view and test_email are removed)
 from django.db.models import Count, Q
 from itertools import chain
 import json
 import re
-import uuid
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.models import User
 
@@ -20,6 +17,9 @@ from django.contrib.auth.models import User
 # Helper function: Episode number
 # -------------------------------
 def extract_episode_number(title):
+    """
+    Extracts the episode number from a movie/series title for sorting.
+    """
     match = re.search(r"[Ee]pisode\s*(\d+)", title)
     if match:
         return int(match.group(1))
@@ -30,110 +30,10 @@ def extract_episode_number(title):
 
 
 # ----------------------------------------------------------------------
-# 🎯 TEST EMAIL VIEW
-# ----------------------------------------------------------------------
-def test_email(request):
-    try:
-        send_mail(
-            "Test Email from Basharat Movies Hub",
-            "✅ This is a test email to confirm email settings are working.",
-            settings.EMAIL_HOST_USER,
-            [settings.EMAIL_HOST_USER],
-            fail_silently=False,
-        )
-        return HttpResponse("✅ Email sent successfully!")
-    except Exception as e:
-        return HttpResponse(f"❌ Error sending email: {str(e)}")
-
-
-# ----------------------------------------------------------------------
-# 🎬 MOVIE REQUEST (updated with messages)
-# ----------------------------------------------------------------------
-def movie_request(request):
-    if request.method == "POST":
-        movie_name = request.POST.get("movie_name", "").strip()
-        user_email = request.POST.get("user_email", "").strip()
-
-        if not movie_name:
-            messages.error(request, "❌ Movie name is required.")
-            return redirect(request.META.get("HTTP_REFERER", "/"))
-
-        subject = f"🎬 Movie Request: {movie_name}"
-        body = f"User requested movie: {movie_name}\nContact Email: {user_email or 'Not provided'}"
-
-        try:
-            send_mail(subject, body, settings.DEFAULT_FROM_EMAIL, [settings.DEFAULT_FROM_EMAIL], fail_silently=False)
-            messages.success(request, "✅ Movie request sent successfully!")
-        except Exception as e:
-            messages.error(request, f"❌ Error sending email: {e}")
-
-        return redirect(request.META.get("HTTP_REFERER", "/"))
-
-    return render(request, "movie_request.html")
-
-
-# ----------------------------------------------------------------------
-# 🎬 MOVIE REQUEST VIEW (HTML page)
-# ----------------------------------------------------------------------
-def movie_request_view(request):
-    return render(request, "movie_request.html")
-
-
-# ----------------------------------------------------------------------
-# 🚨 DMCA REQUEST (updated with messages)
-# ----------------------------------------------------------------------
-def dmca_request(request):
-    if request.method == "POST":
-        content = request.POST.get("dmca_content", "").strip()
-        user_email = request.POST.get("user_email", "").strip()
-
-        if not content:
-            messages.error(request, "❌ DMCA request content is required.")
-            return redirect(request.META.get("HTTP_REFERER", "/"))
-
-        subject = "🚨 DMCA Request"
-        body = f"DMCA Content: {content}\nUser Email: {user_email or 'Not provided'}"
-
-        try:
-            send_mail(subject, body, settings.DEFAULT_FROM_EMAIL, [settings.DEFAULT_FROM_EMAIL], fail_silently=False)
-            messages.success(request, "✅ DMCA request sent successfully!")
-        except Exception as e:
-            messages.error(request, f"❌ Error sending email: {e}")
-
-        return redirect(request.META.get("HTTP_REFERER", "/"))
-
-    return render(request, "dmca_request.html")
-
-
-# ----------------------------------------------------------------------
-# 🎬 MOVIE REQUEST VIEW (JSON)
-# ----------------------------------------------------------------------
-@csrf_protect
-@require_POST
-def movie_request_json(request):
-    try:
-        movie_name = request.POST.get("movie_name", "").strip()
-        user_email = request.POST.get("user_email", "").strip()
-
-        if not movie_name:
-            return JsonResponse({"status": "error", "message": "Movie name is required."}, status=400)
-
-        subject = f"🎬 NEW MOVIE REQUEST: {movie_name}"
-        body = f"User is requesting: {movie_name}\nContact Email: {user_email or 'Not provided'}"
-
-        send_mail(subject, body, settings.DEFAULT_FROM_EMAIL, [settings.DEFAULT_FROM_EMAIL], fail_silently=False)
-        return JsonResponse({"status": "success", "message": "Request sent successfully!"})
-
-    except BadHeaderError:
-        return JsonResponse({"status": "error", "message": "Invalid header found."}, status=400)
-    except Exception as e:
-        return JsonResponse({"status": "error", "message": f"Email sending failed: {e}"}, status=500)
-
-
-# ----------------------------------------------------------------------
 # HOME VIEW
 # ----------------------------------------------------------------------
 def home(request):
+    """Renders the homepage, including search functionality for movies and playlists."""
     query = request.GET.get("q")
     all_playlists = Playlist.objects.all()
     all_movies = Movie.objects.all()
@@ -144,6 +44,7 @@ def home(request):
         all_playlists = all_playlists.filter(playlists_q)
         all_movies = all_movies.filter(movies_q)
 
+    # Combine results and sort by creation date (latest first)
     combined_list = list(chain(all_playlists, all_movies))
     combined_list.sort(
         key=lambda x: x.created_at or timezone.datetime.min.replace(tzinfo=timezone.utc),
@@ -163,12 +64,15 @@ def home(request):
 
 
 def playlist_detail(request, playlist_id):
+    """Displays all movies belonging to a specific playlist."""
     playlist = get_object_or_404(Playlist, id=playlist_id)
+    # Movies are sorted by latest created first
     movies = Movie.objects.filter(playlist=playlist).order_by('-created_at')
     return render(request, "playlist_detail.html", {"playlist": playlist, "movies": movies})
 
 
 def category_detail(request, category_id):
+    """Displays all playlists and movies belonging to a specific category, with search functionality."""
     category = get_object_or_404(Category, id=category_id)
     query = request.GET.get("q")
     movies = Movie.objects.filter(category=category)
@@ -178,6 +82,7 @@ def category_detail(request, category_id):
         movies = movies.filter(title__icontains=query)
         playlists = playlists.filter(name__icontains=query)
 
+    # Combine movies and playlists for display
     items = [{"type": "movie", "obj": m} for m in movies] + [{"type": "playlist", "obj": p} for p in playlists]
     items.sort(
         key=lambda x: x["obj"].created_at or timezone.datetime.min.replace(tzinfo=timezone.utc),
@@ -191,11 +96,13 @@ def category_detail(request, category_id):
 
 
 def movie_detail(request, movie_id):
+    """Displays the detail page for a specific movie."""
     movie = get_object_or_404(Movie, id=movie_id)
     return render(request, "movie_detail.html", {"movie": movie})
 
 
 def get_client_ip(request):
+    """Helper function to get the client's IP address."""
     x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
     if x_forwarded_for:
         return x_forwarded_for.split(",")[0]
@@ -203,12 +110,16 @@ def get_client_ip(request):
 
 
 def download_movie(request, movie_id):
+    """
+    Logs the download event and redirects the user to the actual download link.
+    """
     movie = get_object_or_404(Movie, id=movie_id)
     ip = get_client_ip(request)
     agent = request.META.get("HTTP_USER_AGENT", "")
     user_email = request.user.email if request.user.is_authenticated else None
     username = request.user.username if request.user.is_authenticated else None
 
+    # Create a log entry for the download
     DownloadLog.objects.create(
         movie_title=movie.title,
         ip_address=ip,
@@ -217,10 +128,12 @@ def download_movie(request, movie_id):
         username=username,
         download_time=timezone.now(),
     )
+    # Redirect to the external download link
     return redirect(movie.download_link)
 
 
 def detect_device_name(user_agent: str) -> str:
+    """Tries to detect the device name from the User Agent string."""
     ua = user_agent.lower()
     if "windows" in ua:
         return "Windows PC/Laptop"
@@ -237,6 +150,7 @@ def detect_device_name(user_agent: str) -> str:
 @csrf_exempt
 @require_POST
 def track_install(request):
+    """API endpoint to track PWA/App installation."""
     try:
         data = json.loads(request.body)
         device_id_str = data.get("device_id")
@@ -249,6 +163,7 @@ def track_install(request):
         action_message = "Already tracked (count maintained)"
 
         if created:
+            # First install
             tracker.install_count = 1
             tracker.deleted_count = 0
             tracker.device_info = request.META.get("HTTP_USER_AGENT", "")
@@ -256,11 +171,13 @@ def track_install(request):
             tracker.last_action = "install"
             action_message = "New install tracked"
         elif tracker.install_count == 0:
+            # Re-install after deletion
             tracker.install_count = 1
             tracker.device_name = device_name
             tracker.last_action = "reinstall"
             action_message = "Re-install tracked (count restored)"
         else:
+            # Re-opening the app
             tracker.last_action = "install (re-open)"
             tracker.device_name = device_name
 
@@ -284,6 +201,7 @@ def track_install(request):
 @csrf_exempt
 @require_POST
 def track_uninstall(request):
+    """API endpoint to track PWA/App uninstallation."""
     try:
         data = json.loads(request.body)
         device_id_str = data.get('device_id')
@@ -314,6 +232,7 @@ def track_uninstall(request):
 
 @staff_member_required
 def custom_admin_dashboard(request):
+    """Custom admin dashboard view showing key metrics."""
     total_users = User.objects.count()
     total_movies = Movie.objects.count()
     total_downloads = DownloadLog.objects.count()
@@ -337,33 +256,6 @@ def custom_admin_dashboard(request):
 
 @staff_member_required
 def reset_install_data(request):
+    """Admin endpoint to clear all install tracking data."""
     InstallTracker.objects.all().delete()
     return JsonResponse({"status": "success", "message": "All install data has been reset."})
-
-
-# -------------------------------
-# CONTACT FORM (with DMCA)
-# -------------------------------
-def contact_view(request):
-    if request.method == "POST":
-        name = request.POST.get("name", "").strip()
-        email = request.POST.get("email", "").strip()
-        message = request.POST.get("message", "").strip()
-
-        if not name or not email or not message:
-            messages.error(request, "❌ All fields are required.")
-            return redirect("contact")
-
-        subject = f"📩 New Contact Form Message from {name}"
-        body = f"Name: {name}\nEmail: {email}\nMessage:\n{message}"
-
-        try:
-            send_mail(subject, body, settings.EMAIL_HOST_USER, [settings.EMAIL_HOST_USER], fail_silently=False)
-            messages.success(request, "✅ Message sent successfully! We’ll contact you soon.")
-        except Exception as e:
-            messages.error(request, "❌ Could not send message. Please try again later.")
-            print(f"Contact form email error: {e}")
-
-        return redirect("contact")
-
-    return render(request, "contact.html")

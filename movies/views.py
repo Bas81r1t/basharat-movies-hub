@@ -47,11 +47,70 @@ def test_email(request):
 
 
 # ----------------------------------------------------------------------
-# 🎬 MOVIE REQUEST VIEW
+# 🎬 MOVIE REQUEST (updated with messages)
+# ----------------------------------------------------------------------
+def movie_request(request):
+    if request.method == "POST":
+        movie_name = request.POST.get("movie_name", "").strip()
+        user_email = request.POST.get("user_email", "").strip()
+
+        if not movie_name:
+            messages.error(request, "❌ Movie name is required.")
+            return redirect(request.META.get("HTTP_REFERER", "/"))
+
+        subject = f"🎬 Movie Request: {movie_name}"
+        body = f"User requested movie: {movie_name}\nContact Email: {user_email or 'Not provided'}"
+
+        try:
+            send_mail(subject, body, settings.DEFAULT_FROM_EMAIL, [settings.DEFAULT_FROM_EMAIL], fail_silently=False)
+            messages.success(request, "✅ Movie request sent successfully!")
+        except Exception as e:
+            messages.error(request, f"❌ Error sending email: {e}")
+
+        return redirect(request.META.get("HTTP_REFERER", "/"))
+
+    return render(request, "movie_request.html")
+
+
+# ----------------------------------------------------------------------
+# 🎬 MOVIE REQUEST VIEW (HTML page)
+# ----------------------------------------------------------------------
+def movie_request_view(request):
+    return render(request, "movie_request.html")
+
+
+# ----------------------------------------------------------------------
+# 🚨 DMCA REQUEST (updated with messages)
+# ----------------------------------------------------------------------
+def dmca_request(request):
+    if request.method == "POST":
+        content = request.POST.get("dmca_content", "").strip()
+        user_email = request.POST.get("user_email", "").strip()
+
+        if not content:
+            messages.error(request, "❌ DMCA request content is required.")
+            return redirect(request.META.get("HTTP_REFERER", "/"))
+
+        subject = "🚨 DMCA Request"
+        body = f"DMCA Content: {content}\nUser Email: {user_email or 'Not provided'}"
+
+        try:
+            send_mail(subject, body, settings.DEFAULT_FROM_EMAIL, [settings.DEFAULT_FROM_EMAIL], fail_silently=False)
+            messages.success(request, "✅ DMCA request sent successfully!")
+        except Exception as e:
+            messages.error(request, f"❌ Error sending email: {e}")
+
+        return redirect(request.META.get("HTTP_REFERER", "/"))
+
+    return render(request, "dmca_request.html")
+
+
+# ----------------------------------------------------------------------
+# 🎬 MOVIE REQUEST VIEW (JSON)
 # ----------------------------------------------------------------------
 @csrf_protect
 @require_POST
-def movie_request(request):
+def movie_request_json(request):
     try:
         movie_name = request.POST.get("movie_name", "").strip()
         user_email = request.POST.get("user_email", "").strip()
@@ -62,65 +121,13 @@ def movie_request(request):
         subject = f"🎬 NEW MOVIE REQUEST: {movie_name}"
         body = f"User is requesting: {movie_name}\nContact Email: {user_email or 'Not provided'}"
 
-        send_mail(
-            subject,
-            body,
-            settings.EMAIL_HOST_USER,
-            [settings.EMAIL_HOST_USER],
-            fail_silently=False,
-        )
+        send_mail(subject, body, settings.DEFAULT_FROM_EMAIL, [settings.DEFAULT_FROM_EMAIL], fail_silently=False)
         return JsonResponse({"status": "success", "message": "Request sent successfully!"})
 
     except BadHeaderError:
         return JsonResponse({"status": "error", "message": "Invalid header found."}, status=400)
     except Exception as e:
         return JsonResponse({"status": "error", "message": f"Email sending failed: {e}"}, status=500)
-
-
-# ----------------------------------------------------------------------
-# 🎬 MOVIE REQUEST FORM VIEW (simple version)
-# ----------------------------------------------------------------------
-def movie_request_view(request):
-    if request.method == "POST":
-        movie_name = request.POST.get("movie_name")
-        user_email = request.POST.get("email", "Not provided")
-
-        subject = "🎬 New Movie Request"
-        message = f"Movie Requested: {movie_name}\nUser Email: {user_email}"
-
-        send_mail(
-            subject,
-            message,
-            settings.EMAIL_HOST_USER,
-            [settings.EMAIL_HOST_USER],
-            fail_silently=False,
-        )
-        return HttpResponse("✅ Movie request sent successfully!")
-
-    return render(request, "movie_request.html")
-
-
-# ----------------------------------------------------------------------
-# 🚨 DMCA REQUEST VIEW
-# ----------------------------------------------------------------------
-def dmca_request_view(request):
-    if request.method == "POST":
-        movie_name = request.POST.get("movie_name")
-        user_email = request.POST.get("email", "Not provided")
-
-        subject = "🚨 DMCA Request"
-        message = f"DMCA Removal Request for: {movie_name}\nUser Email: {user_email}"
-
-        send_mail(
-            subject,
-            message,
-            settings.EMAIL_HOST_USER,
-            [settings.EMAIL_HOST_USER],
-            fail_silently=False,
-        )
-        return HttpResponse("✅ DMCA request sent successfully!")
-
-    return render(request, "dmca_request.html")
 
 
 # ----------------------------------------------------------------------
@@ -351,13 +358,7 @@ def contact_view(request):
         body = f"Name: {name}\nEmail: {email}\nMessage:\n{message}"
 
         try:
-            send_mail(
-                subject,
-                body,
-                settings.EMAIL_HOST_USER,
-                [settings.EMAIL_HOST_USER],
-                fail_silently=False
-            )
+            send_mail(subject, body, settings.EMAIL_HOST_USER, [settings.EMAIL_HOST_USER], fail_silently=False)
             messages.success(request, "✅ Message sent successfully! We’ll contact you soon.")
         except Exception as e:
             messages.error(request, "❌ Could not send message. Please try again later.")

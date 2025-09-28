@@ -1,7 +1,8 @@
 from django.urls import path
-from django.contrib import admin
 from . import views
 from django.contrib.auth import views as auth_views
+from django.contrib import admin
+
 
 urlpatterns = [
     # -------------------------
@@ -22,7 +23,7 @@ urlpatterns = [
     # -------------------------
     # DMCA Request Endpoint
     # -------------------------
-    path("dmca-request/", views.dmca_request_view, name="dmca_request"),
+    path("dmca-request/", views.dmca_request, name="dmca_request"),
 
     # -------------------------
     # Contact Form

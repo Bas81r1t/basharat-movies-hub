@@ -6,17 +6,17 @@ import cloudinary
 import dj_database_url
 
 # ------------------------------
-# ✅ Base Directory
+# Base Directory
 # ------------------------------
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # ------------------------------
-# ✅ Load .env file
+# Load .env file
 # ------------------------------
 load_dotenv(dotenv_path=os.path.join(BASE_DIR, '.env'))
 
 # ------------------------------
-# ✅ Secret Key & Debug Mode
+# Secret Key & Debug Mode
 # ------------------------------
 SECRET_KEY = config('SECRET_KEY', default='django-insecure-default-key').strip()
 DEBUG = config('DEBUG', default=False, cast=bool)
@@ -29,7 +29,7 @@ ALLOWED_HOSTS = [
 ]
 
 # ------------------------------
-# ✅ Installed Apps
+# Installed Apps
 # ------------------------------
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -51,7 +51,7 @@ INSTALLED_APPS = [
 ]
 
 # ------------------------------
-# ✅ Middleware
+# Middleware
 # ------------------------------
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -67,7 +67,7 @@ MIDDLEWARE = [
 ROOT_URLCONF = 'basharat.urls'
 
 # ------------------------------
-# ✅ Templates
+# Templates
 # ------------------------------
 TEMPLATES = [
     {
@@ -88,7 +88,7 @@ TEMPLATES = [
 WSGI_APPLICATION = 'basharat.wsgi.application'
 
 # ------------------------------
-# ✅ Database Configuration
+# Database Configuration
 # ------------------------------
 DATABASES = {
     "default": dj_database_url.config(
@@ -99,7 +99,7 @@ DATABASES = {
 }
 
 # ------------------------------
-# ✅ Password Validators
+# Password Validators
 # ------------------------------
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
@@ -109,7 +109,7 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 # ------------------------------
-# ✅ Language & Timezone
+# Language & Timezone
 # ------------------------------
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'Asia/Kolkata'
@@ -117,7 +117,7 @@ USE_I18N = True
 USE_TZ = True
 
 # ------------------------------
-# ✅ Static Files
+# Static Files
 # ------------------------------
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
@@ -125,48 +125,54 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # ------------------------------
-# ✅ Media Files
+# Media Files
 # ------------------------------
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # ------------------------------
-# ✅ Cloudinary Configuration
+# Cloudinary Configuration
 # ------------------------------
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 CLOUDINARY_STORAGE = {
-    'CLOUD_NAME': config('CLOUD_NAME', default='').strip(),
-    'API_KEY': config('API_KEY', default='').strip(),
-    'API_SECRET': config('API_SECRET', default='').strip(),
+    'CLOUD_NAME': config('CLOUD_NAME').strip(),
+    'API_KEY': config('API_KEY').strip(),
+    'API_SECRET': config('API_SECRET').strip(),
 }
 cloudinary.config(
-    cloud_name=config('CLOUD_NAME', default='').strip(),
-    api_key=config('API_KEY', default='').strip(),
-    api_secret=config('API_SECRET', default='').strip(),
+    cloud_name=config('CLOUD_NAME').strip(),
+    api_key=config('API_KEY').strip(),
+    api_secret=config('API_SECRET').strip(),
     secure=True
 )
 
 # ------------------------------
-# ✅ Email Configuration (from os.getenv)
+# Email Configuration
 # ------------------------------
-EMAIL_BACKEND = os.getenv("EMAIL_BACKEND")
-EMAIL_HOST = os.getenv("EMAIL_HOST")
-EMAIL_PORT = int(os.getenv("EMAIL_PORT", 587))
-EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS") == "True"
-EMAIL_USE_SSL = os.getenv("EMAIL_USE_SSL") == "True"
-EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
-EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
-DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL")
+EMAIL_BACKEND = config('EMAIL_BACKEND').strip()
+EMAIL_HOST = config('EMAIL_HOST').strip()
+EMAIL_PORT = config('EMAIL_PORT', cast=int)
+
+# Sendinblue (Brevo) uses TLS on port 587.
+# We ensure these boolean values are correctly cast from the .env file.
+EMAIL_USE_TLS = config('EMAIL_USE_TLS', cast=bool)
+EMAIL_USE_SSL = config('EMAIL_USE_SSL', cast=bool) # Should be False
+
+EMAIL_HOST_USER = config('EMAIL_HOST_USER').strip()
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD').strip() # CRITICAL: This must be the Sendinblue SMTP Key, not your login password.
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL').strip()
+
+# Increase timeout to prevent Render worker timeouts during send
 EMAIL_TIMEOUT = 60
 
 # ------------------------------
-# ✅ CSRF Trusted Origins
+# CSRF Trusted Origins
 # ------------------------------
 CSRF_TRUSTED_ORIGINS = [
     'https://basharat-movies-hub.onrender.com'
 ]
 
 # ------------------------------
-# ✅ Auto Field
+# Auto Field
 # ------------------------------
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

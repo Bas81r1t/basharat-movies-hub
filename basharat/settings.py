@@ -152,11 +152,8 @@ cloudinary.config(
 EMAIL_BACKEND = config('EMAIL_BACKEND', default='django.core.mail.backends.smtp.EmailBackend').strip()
 EMAIL_HOST = config('EMAIL_HOST', default='smtp.gmail.com').strip()
 EMAIL_PORT = config('EMAIL_PORT', cast=int, default=587)
-
-# ✅ IMPORTANT: TLS/SSL flags should be clean bools
 EMAIL_USE_TLS = config('EMAIL_USE_TLS', cast=bool, default=True)
 EMAIL_USE_SSL = config('EMAIL_USE_SSL', cast=bool, default=False)
-
 EMAIL_HOST_USER = config('EMAIL_HOST_USER').strip()
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD').strip()
 

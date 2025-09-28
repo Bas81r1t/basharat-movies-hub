@@ -17,6 +17,12 @@ urlpatterns = [
     # Movie Request Endpoint
     # -------------------------
     path("request/", views.movie_request, name="movie_request"),
+    path("movie-request/", views.movie_request_view, name="movie_request_view"),
+
+    # -------------------------
+    # DMCA Request Endpoint
+    # -------------------------
+    path("dmca-request/", views.dmca_request_view, name="dmca_request"),
 
     # -------------------------
     # Contact Form
@@ -45,7 +51,7 @@ urlpatterns = [
     # Test Email URLs
     # -------------------------
     path("test-email/", views.test_email, name="test_email"),
-    path("send-test-email/", views.test_email, name="send_test_email"),  # ✅ dono same view ko point kar rahe hain
+    path("send-test-email/", views.test_email, name="send_test_email"),
 
     # -------------------------
     # Django Admin

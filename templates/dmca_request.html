@@ -1,0 +1,10 @@
+    <form method="POST" action="{% url 'dmca_request' %}">
+        {% csrf_token %}
+        <label>Movie Name:</label>
+        <input type="text" name="movie_name" required><br><br>
+
+        <label>Your Email:</label>
+        <input type="email" name="email"><br><br>
+
+        <button type="submit">Send DMCA Request</button>
+    </form>

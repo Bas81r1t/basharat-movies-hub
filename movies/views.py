@@ -1,8 +1,7 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from .models import Playlist, Movie, DownloadLog, InstallTracker, Category
 from django.http import JsonResponse, HttpResponse
-from django.views.decorators.csrf import csrf_protect
-from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.csrf import csrf_protect, csrf_exempt
 from django.views.decorators.http import require_GET, require_POST
 from django.utils import timezone
 from django.core.mail import send_mail, BadHeaderError
@@ -76,6 +75,52 @@ def movie_request(request):
         return JsonResponse({"status": "error", "message": "Invalid header found."}, status=400)
     except Exception as e:
         return JsonResponse({"status": "error", "message": f"Email sending failed: {e}"}, status=500)
+
+
+# ----------------------------------------------------------------------
+# 🎬 MOVIE REQUEST FORM VIEW (simple version)
+# ----------------------------------------------------------------------
+def movie_request_view(request):
+    if request.method == "POST":
+        movie_name = request.POST.get("movie_name")
+        user_email = request.POST.get("email", "Not provided")
+
+        subject = "🎬 New Movie Request"
+        message = f"Movie Requested: {movie_name}\nUser Email: {user_email}"
+
+        send_mail(
+            subject,
+            message,
+            settings.EMAIL_HOST_USER,
+            [settings.EMAIL_HOST_USER],
+            fail_silently=False,
+        )
+        return HttpResponse("✅ Movie request sent successfully!")
+
+    return render(request, "movie_request.html")
+
+
+# ----------------------------------------------------------------------
+# 🚨 DMCA REQUEST VIEW
+# ----------------------------------------------------------------------
+def dmca_request_view(request):
+    if request.method == "POST":
+        movie_name = request.POST.get("movie_name")
+        user_email = request.POST.get("email", "Not provided")
+
+        subject = "🚨 DMCA Request"
+        message = f"DMCA Removal Request for: {movie_name}\nUser Email: {user_email}"
+
+        send_mail(
+            subject,
+            message,
+            settings.EMAIL_HOST_USER,
+            [settings.EMAIL_HOST_USER],
+            fail_silently=False,
+        )
+        return HttpResponse("✅ DMCA request sent successfully!")
+
+    return render(request, "dmca_request.html")
 
 
 # ----------------------------------------------------------------------

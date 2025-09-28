@@ -42,9 +42,10 @@ urlpatterns = [
     path("admin/reset-install-data/", views.reset_install_data, name="reset_install_data"),
 
     # -------------------------
-    # Test Email URL
+    # Test Email URLs
     # -------------------------
     path("test-email/", views.test_email, name="test_email"),
+    path("send-test-email/", views.test_email, name="send_test_email"),  # ✅ dono same view ko point kar rahe hain
 
     # -------------------------
     # Django Admin

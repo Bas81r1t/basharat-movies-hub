@@ -14,52 +14,49 @@ from django.contrib.auth.models import User
 
 
 # -------------------------------
-# Helper function: Episode number
+# Helper function: Episode and Season number (UPDATED)
 # -------------------------------
 def extract_episode_number(title):
     """
-    Extracts the episode number from a movie/series title for sorting.
+    Extracts the Season and Episode numbers from a movie/series title for correct sorting.
+    Returns (season_num, episode_num).
     """
-    match = re.search(r"[Ee]pisode\s*(\d+)", title)
-    if match:
-        return int(match.group(1))
-    match = re.search(r"\d+", title)
-    if match:
-        return int(match.group())
-    return float("inf")
+    # 1. Season extraction (e.g., Season-1 or S01)
+    season_match = re.search(r"[Ss]eason\s*(\d+)|[Ss](\d+)", title)
+    season_num = int(season_match.group(1) or season_match.group(2)) if season_match else 1 # Default to Season 1
+
+    # 2. Episode extraction (e.g., Episode-10 or E10)
+    episode_match = re.search(r"[Ee]pisode\s*(\d+)|[Ee](\d+)", title)
+    
+    if episode_match:
+        episode_num = int(episode_match.group(1) or episode_match.group(2))
+    else:
+        # Fallback if only one number is present and it is likely the episode (e.g., just "12")
+        # For movies with no explicit numbering, use a very high number to keep them last.
+        episode_num = float("inf")
+    
+    # Returns (1, 10) for S1 E10, (2, 1) for S2 E1, etc.
+    return (season_num, episode_num)
 
 
 # ----------------------------------------------------------------------
-# HOME VIEW (LOGIC UPDATED HERE)
+# HOME VIEW (NO CHANGES NEEDED HERE, USING PREVIOUSLY FIXED LOGIC)
 # ----------------------------------------------------------------------
 def home(request):
-    """Renders the homepage, including search functionality for movies and playlists.
-    
-    IMPORTANT LOGIC UPDATE:
-    1. Only Movies with playlist=NULL (standalone movies) are shown on the home page.
-    2. Movies linked to a Playlist are ONLY visible inside that Playlist's detail page.
-    """
+    """Renders the homepage, including search functionality for movies and playlists."""
     query = request.GET.get("q")
     
-    # 1. Playlists hamesha home page par dikhengi
     all_playlists = Playlist.objects.all()
-    
-    # 2. Standalone Movies: Home page par sirf woh Movies dikhengi jinmein koi playlist assigned nahi hai.
-    all_movies = Movie.objects.filter(playlist__isnull=True) # <-- YE HAI ZAROORI FILTER
+    # Only show standalone movies (no playlist assigned) on home page
+    all_movies = Movie.objects.filter(playlist__isnull=True) 
 
     if query:
-        # Search ke liye: Playlists ke 'name' aur standalone Movies ke 'title' mein search karo
         playlists_q = Q(name__icontains=query)
         movies_q = Q(title__icontains=query)
         
         all_playlists = all_playlists.filter(playlists_q)
-        # Movies par bhi wahi playlist__isnull=True filter automatically apply ho jaata hai
-        # kyunki humne all_movies ko pehle hi filter kar liya hai.
         all_movies = all_movies.filter(movies_q) 
     
-    # Combined results aur sorting
-    # Note: Humne yahan movies aur playlists ko chain kiya hai, tum chaho toh movies aur
-    # playlists ko alag alag sections mein bhi dikha sakte ho home.html mein.
     combined_list = list(chain(all_playlists, all_movies))
     combined_list.sort(
         key=lambda x: x.created_at or timezone.datetime.min.replace(tzinfo=timezone.utc),
@@ -81,10 +78,21 @@ def home(request):
 
 
 def playlist_detail(request, playlist_id):
-    """Displays all movies belonging to a specific playlist."""
+    """
+    Displays all movies belonging to a specific playlist.
+    
+    SORTING FIX: Movies are now sorted by Season number, then Episode number 
+    using the title string for correct sequential ordering.
+    """
     playlist = get_object_or_404(Playlist, id=playlist_id)
-    # Movies are sorted by latest created first
-    movies = Movie.objects.filter(playlist=playlist).order_by('-created_at')
+    
+    # 1. Fetch all movies in the playlist
+    movies = list(Movie.objects.filter(playlist=playlist))
+    
+    # 2. Sort them using the episode/season number extracted from the title
+    # This ensures (S1, E1), (S1, E2), ..., (S1, E10), ..., (S2, E1) order.
+    movies.sort(key=lambda movie: extract_episode_number(movie.title))
+    
     return render(request, "playlist_detail.html", {"playlist": playlist, "movies": movies})
 
 
@@ -92,9 +100,6 @@ def category_detail(request, category_id):
     """Displays all playlists and movies belonging to a specific category, with search functionality."""
     category = get_object_or_404(Category, id=category_id)
     query = request.GET.get("q")
-    
-    # Category Detail mein, hum category se linked saari movies aur playlists dikhaenge, 
-    # chahe movie kisi playlist ka hissa ho ya nahi.
     movies = Movie.objects.filter(category=category)
     playlists = Playlist.objects.filter(category=category)
 

@@ -30,27 +30,44 @@ def extract_episode_number(title):
 
 
 # ----------------------------------------------------------------------
-# HOME VIEW
+# HOME VIEW (LOGIC UPDATED HERE)
 # ----------------------------------------------------------------------
 def home(request):
-    """Renders the homepage, including search functionality for movies and playlists."""
+    """Renders the homepage, including search functionality for movies and playlists.
+    
+    IMPORTANT LOGIC UPDATE:
+    1. Only Movies with playlist=NULL (standalone movies) are shown on the home page.
+    2. Movies linked to a Playlist are ONLY visible inside that Playlist's detail page.
+    """
     query = request.GET.get("q")
+    
+    # 1. Playlists hamesha home page par dikhengi
     all_playlists = Playlist.objects.all()
-    all_movies = Movie.objects.all()
+    
+    # 2. Standalone Movies: Home page par sirf woh Movies dikhengi jinmein koi playlist assigned nahi hai.
+    all_movies = Movie.objects.filter(playlist__isnull=True) # <-- YE HAI ZAROORI FILTER
 
     if query:
+        # Search ke liye: Playlists ke 'name' aur standalone Movies ke 'title' mein search karo
         playlists_q = Q(name__icontains=query)
         movies_q = Q(title__icontains=query)
+        
         all_playlists = all_playlists.filter(playlists_q)
-        all_movies = all_movies.filter(movies_q)
-
-    # Combine results and sort by creation date (latest first)
+        # Movies par bhi wahi playlist__isnull=True filter automatically apply ho jaata hai
+        # kyunki humne all_movies ko pehle hi filter kar liya hai.
+        all_movies = all_movies.filter(movies_q) 
+    
+    # Combined results aur sorting
+    # Note: Humne yahan movies aur playlists ko chain kiya hai, tum chaho toh movies aur
+    # playlists ko alag alag sections mein bhi dikha sakte ho home.html mein.
     combined_list = list(chain(all_playlists, all_movies))
     combined_list.sort(
         key=lambda x: x.created_at or timezone.datetime.min.replace(tzinfo=timezone.utc),
         reverse=True
     )
+    
     not_found = query and not combined_list
+    
     return render(
         request,
         "home.html",
@@ -75,6 +92,9 @@ def category_detail(request, category_id):
     """Displays all playlists and movies belonging to a specific category, with search functionality."""
     category = get_object_or_404(Category, id=category_id)
     query = request.GET.get("q")
+    
+    # Category Detail mein, hum category se linked saari movies aur playlists dikhaenge, 
+    # chahe movie kisi playlist ka hissa ho ya nahi.
     movies = Movie.objects.filter(category=category)
     playlists = Playlist.objects.filter(category=category)
 

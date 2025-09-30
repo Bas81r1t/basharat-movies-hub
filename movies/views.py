@@ -4,13 +4,14 @@ from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt 
 from django.views.decorators.http import require_POST
 from django.utils import timezone
+# Removed: send_mail, settings, messages (since contact_view and test_email are removed)
 from django.db.models import Count, Q
 from itertools import chain
 import json
 import re
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.models import User
-from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger # Paginator for home view
+
 
 # -------------------------------
 # Helper function: Episode and Season number (UPDATED)
@@ -22,16 +23,16 @@ def extract_episode_number(title):
     """
     # 1. Season extraction (e.g., Season-1 or S01)
     season_match = re.search(r"[Ss]eason\s*(\d+)|[Ss](\d+)", title)
-    # Use nested groups to find the digit part, default to 1
-    season_num = int(season_match.group(1) or season_match.group(2)) if season_match and (season_match.group(1) or season_match.group(2)) else 1 
+    season_num = int(season_match.group(1) or season_match.group(2)) if season_match else 1 # Default to Season 1
 
     # 2. Episode extraction (e.g., Episode-10 or E10)
     episode_match = re.search(r"[Ee]pisode\s*(\d+)|[Ee](\d+)", title)
     
-    if episode_match and (episode_match.group(1) or episode_match.group(2)):
+    if episode_match:
         episode_num = int(episode_match.group(1) or episode_match.group(2))
     else:
-        # Fallback for movies/single episodes without clear numbering: use a very high number to keep them last.
+        # Fallback if only one number is present and it is likely the episode (e.g., just "12")
+        # For movies with no explicit numbering, use a very high number to keep them last.
         episode_num = float("inf")
     
     # Returns (1, 10) for S1 E10, (2, 1) for S2 E1, etc.
@@ -39,72 +40,36 @@ def extract_episode_number(title):
 
 
 # ----------------------------------------------------------------------
-# HOME VIEW (FIXED FOR MEMORY OVERLOAD AND TIMEOUT)
+# HOME VIEW (NO CHANGES NEEDED HERE, USING PREVIOUSLY FIXED LOGIC)
 # ----------------------------------------------------------------------
 def home(request):
-    """Renders the homepage, including search functionality and memory-safe fetching."""
-    
+    """Renders the homepage, including search functionality for movies and playlists."""
     query = request.GET.get("q")
-    page = request.GET.get('page', 1) # Get current page number
     
-    # 1. Base QuerySets (Order by created_at in the DB)
-    all_playlists_qs = Playlist.objects.all().order_by('-created_at')
+    all_playlists = Playlist.objects.all()
     # Only show standalone movies (no playlist assigned) on home page
-    all_movies_qs = Movie.objects.filter(playlist__isnull=True).order_by('-created_at') 
+    all_movies = Movie.objects.filter(playlist__isnull=True) 
 
-    # 2. Apply Search Filtering
     if query:
         playlists_q = Q(name__icontains=query)
         movies_q = Q(title__icontains=query)
         
-        all_playlists_qs = all_playlists_qs.filter(playlists_q)
-        all_movies_qs = all_movies_qs.filter(movies_q) 
+        all_playlists = all_playlists.filter(playlists_q)
+        all_movies = all_movies.filter(movies_q) 
     
-    
-    # --- CRITICAL FIX: MEMORY GUARD ---
-    # To prevent SIGKILL/OOM errors, we must avoid loading all data into memory with list().
-    # We will limit the total items fetched to a small, safe number (e.g., 50) 
-    # even when search is applied.
-    
-    # NOTE: If you expect very deep search results, you might need a different 
-    # search solution (like PostgreSQL full-text search) instead of limiting the QuerySet.
-    
-    MAX_ITEMS_TO_FETCH = 50 
-    
-    # Fetch limited results using slicing (which translates to SQL LIMIT)
-    # Using iterator() is also an option, but slicing is simpler when pagination is needed
-    limited_playlists = all_playlists_qs[:MAX_ITEMS_TO_FETCH // 2]
-    limited_movies = all_movies_qs[:MAX_ITEMS_TO_FETCH // 2]
-    
-    # Convert to list ONLY for the limited set of items, which is now safe.
-    combined_list = list(chain(limited_playlists, limited_movies))
-    
-    # Sort the combined list (newest first)
-    # We use .created_at or a default min time to ensure sort works even if created_at is None
+    combined_list = list(chain(all_playlists, all_movies))
     combined_list.sort(
         key=lambda x: x.created_at or timezone.datetime.min.replace(tzinfo=timezone.utc),
         reverse=True
     )
     
-    # 4. Apply Pagination (Show 12 items per page)
-    items_per_page = 12
-    paginator = Paginator(combined_list, items_per_page)
-    
-    try:
-        media_items = paginator.page(page)
-    except PageNotAnInteger:
-        media_items = paginator.page(1)
-    except EmptyPage:
-        # If page is out of range, deliver last page of results.
-        media_items = paginator.page(paginator.num_pages)
-
     not_found = query and not combined_list
     
     return render(
         request,
         "home.html",
         {
-            "media_items": media_items, # PAGINATED LIST
+            "media_items": combined_list,
             "categories": Category.objects.all(),
             "query": query,
             "not_found": not_found,
@@ -122,12 +87,10 @@ def playlist_detail(request, playlist_id):
     playlist = get_object_or_404(Playlist, id=playlist_id)
     
     # 1. Fetch all movies in the playlist
-    # FIX: We use .iterator() here if the playlist is expected to be very large
-    # but for sorting we still need them in memory, so we keep list() for now.
-    # If this page also crashes, we would need to implement complex custom pagination.
     movies = list(Movie.objects.filter(playlist=playlist))
     
     # 2. Sort them using the episode/season number extracted from the title
+    # This ensures (S1, E1), (S1, E2), ..., (S1, E10), ..., (S2, E1) order.
     movies.sort(key=lambda movie: extract_episode_number(movie.title))
     
     return render(request, "playlist_detail.html", {"playlist": playlist, "movies": movies})
@@ -145,21 +108,11 @@ def category_detail(request, category_id):
         playlists = playlists.filter(name__icontains=query)
 
     # Combine movies and playlists for display
-    # FIX: Applying the same memory guard here. Limiting the fetch to 50 items.
-    MAX_ITEMS_TO_FETCH = 50 
-    
-    limited_movies = movies.order_by('-created_at')[:MAX_ITEMS_TO_FETCH // 2]
-    limited_playlists = playlists.order_by('-created_at')[:MAX_ITEMS_TO_FETCH // 2]
-
-    # Combine the limited, sorted QuerySets
-    items = [{"type": "movie", "obj": m} for m in limited_movies] + [{"type": "playlist", "obj": p} for p in limited_playlists]
-    
-    # Sort the combined list (newest first)
+    items = [{"type": "movie", "obj": m} for m in movies] + [{"type": "playlist", "obj": p} for p in playlists]
     items.sort(
         key=lambda x: x["obj"].created_at or timezone.datetime.min.replace(tzinfo=timezone.utc),
         reverse=True
     )
-    
     return render(request, "category_detail.html", {
         "category": category,
         "items": items,

@@ -94,7 +94,7 @@ DATABASES = {
     "default": dj_database_url.config(
         default=config("DATABASE_URL").strip(),
         conn_max_age=600,
-        ssl_require=True  # explicitly SSL require karo
+        ssl_require=not DEBUG
     )
 }
 
@@ -153,12 +153,16 @@ EMAIL_BACKEND = config('EMAIL_BACKEND').strip()
 EMAIL_HOST = config('EMAIL_HOST').strip()
 EMAIL_PORT = config('EMAIL_PORT', cast=int)
 
+# Sendinblue (Brevo) uses TLS on port 587.
+# We ensure these boolean values are correctly cast from the .env file.
 EMAIL_USE_TLS = config('EMAIL_USE_TLS', cast=bool)
-EMAIL_USE_SSL = config('EMAIL_USE_SSL', cast=bool)
+EMAIL_USE_SSL = config('EMAIL_USE_SSL', cast=bool) # Should be False
 
 EMAIL_HOST_USER = config('EMAIL_HOST_USER').strip()
-EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD').strip()
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD').strip() # CRITICAL: This must be the Sendinblue SMTP Key, not your login password.
 DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL').strip()
+
+# Increase timeout to prevent Render worker timeouts during send
 EMAIL_TIMEOUT = 60
 
 # ------------------------------
@@ -167,16 +171,6 @@ EMAIL_TIMEOUT = 60
 CSRF_TRUSTED_ORIGINS = [
     'https://basharat-movies-hub.onrender.com'
 ]
-
-# ------------------------------
-# Cache Configuration
-# ------------------------------
-CACHES = {
-    "default": {
-        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
-        "LOCATION": "unique-snowflake",
-    }
-}
 
 # ------------------------------
 # Auto Field

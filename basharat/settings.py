@@ -94,7 +94,7 @@ DATABASES = {
     "default": dj_database_url.config(
         default=config("DATABASE_URL").strip(),
         conn_max_age=600,
-        ssl_require=not DEBUG
+        ssl_require=True  # explicitly SSL require karo
     )
 }
 

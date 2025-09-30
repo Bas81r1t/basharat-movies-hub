@@ -1,1 +1,171 @@
-zz
+{% extends 'base.html' %}
+{% load static %}
+{% load cloudinary %}
+
+{% block content %}
+<style>
+/* -------------------------
+   Styles for Faster Rendering
+------------------------- */
+
+.movie-card {
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    border-radius: 12px;
+    box-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    overflow: hidden;
+}
+
+.movie-card:hover {
+    transform: scale(1.02);
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.7);
+}
+
+.card-img-top {
+    width: 100%;
+    height: 250px;
+    object-fit: cover;
+}
+
+/* Category Buttons */
+.category-buttons-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.category-button {
+    background-color: #2e3032;
+    color: #ffffff;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-weight: bold;
+    border: 1px solid #4a4d50;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.category-button:hover {
+    background-color: #4a4d50;
+    transform: scale(1.05);
+}
+
+.container {
+    padding-left: 5px;
+    padding-right: 5px;
+}
+
+@media (max-width: 576px) {
+    .movie-card {
+        width: 100%;
+    }
+}
+
+/* Spinner */
+#loading-spinner {
+    display: none;
+    position: fixed;
+    z-index: 9999;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+</style>
+
+<!-- Loading Spinner -->
+<div id="loading-spinner">
+    <img src="{% static 'images/spinner.gif' %}" alt="Loading..." width="80">
+</div>
+
+<div class="container mt-4">
+    <!-- Search Bar -->
+    <form id="search-form" class="mb-4">
+        <div class="input-group">
+            <input type="text" id="search-input" class="form-control" placeholder="Search movies & playlists..." value="{{ query|default:'' }}">
+            <button type="submit" class="btn btn-primary">Search</button>
+        </div>
+    </form>
+
+    {% if not query %}
+    <div class="category-buttons-container">
+        {% for category in categories %}
+            <a href="{% url 'category_detail' category.id %}" class="category-button">
+                {{ category.name }}
+            </a>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Media Items -->
+    <div id="media-items" class="row mt-4 gx-3">
+        {% for item in media_items %}
+            <div class="col-6 col-sm-4 col-md-3 mb-3">
+                <div class="card movie-card h-100">
+                    {% if item.name %}
+                        <a href="{% url 'playlist_detail' item.id %}" class="title-link">
+                            {% if item.banner %}
+                                {% cloudinary item.banner class="card-img-top" alt=item.name %}
+                            {% else %}
+                                <img src="{% static 'images/default-playlist.jpg' %}" class="card-img-top" alt="No Image">
+                            {% endif %}
+                            <div class="card-body text-center">
+                                <h5 class="card-title">{{ item.name }}</h5>
+                            </div>
+                        </a>
+                    {% else %}
+                        <a href="{% url 'movie_detail' item.id %}" class="title-link">
+                            {% if item.poster %}
+                                {% cloudinary item.poster class="card-img-top" alt=item.title %}
+                            {% else %}
+                                <img src="{% static 'images/default-movie.jpg' %}" class="card-img-top" alt="No Image">
+                            {% endif %}
+                            <div class="card-body text-center">
+                                <h5 class="card-title">{{ item.title }}</h5>
+                            </div>
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+
+<script>
+document.getElementById('search-form').addEventListener('submit', function(e){
+    e.preventDefault();
+
+    let query = document.getElementById('search-input').value.trim();
+    let spinner = document.getElementById('loading-spinner');
+    let mediaContainer = document.getElementById('media-items');
+
+    spinner.style.display = 'block';
+    mediaContainer.innerHTML = ''; // Clear previous results
+
+    fetch(`/?q=${encodeURIComponent(query)}`, {
+        method: 'GET',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => response.text())
+    .then(html => {
+        spinner.style.display = 'none';
+
+        let parser = new DOMParser();
+        let doc = parser.parseFromString(html, "text/html");
+        let newItems = doc.querySelector("#media-items");
+
+        if(newItems) {
+            mediaContainer.innerHTML = newItems.innerHTML;
+        } else {
+            mediaContainer.innerHTML = "<div class='alert alert-warning'>😢 Sorry! Kuch nahi mila.</div>";
+        }
+    })
+    .catch(err => {
+        spinner.style.display = 'none';
+        console.error(err);
+    });
+});
+</script>
+{% endblock %}

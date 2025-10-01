@@ -13,29 +13,66 @@ from django.contrib.auth.models import User
 
 
 # -------------------------------
-# Helper function: Episode number
+# Helper function: Robust Season and Episode number extraction
 # -------------------------------
 def extract_episode_number(title):
     """
-    Extracts the episode number from a movie/series title for sorting.
+    Extracts the Season and Episode numbers from a movie/series title for correct sorting.
+    Returns (season_num, episode_num). This version is highly robust against bad titles.
     """
-    match = re.search(r"[Ee]pisode\s*(\d+)", title)
-    if match:
-        return int(match.group(1))
-    match = re.search(r"\d+", title)
-    if match:
-        return int(match.group())
-    return float("inf")
+    title = title or ""
+    title = title.lower()
+
+    # Default values: Season 1, and a very high episode number (for movies or unsorted items)
+    season_num = 1
+    episode_num = 9999 
+
+    # 1. Season extraction (e.g., season 1, s01, s 1)
+    # Searches for 's' or 'season' followed by digits
+    season_match = re.search(r"s(?:eason)?\s*(\d+)", title)
+    if season_match:
+        try:
+            # Safely convert to integer
+            season_num = int(season_match.group(1))
+        except ValueError:
+            pass 
+
+    # 2. Episode extraction (e.g., episode 10, e10, e 10)
+    # Searches for 'e' or 'episode' followed by digits
+    episode_match = re.search(r"e(?:pisode)?\s*(\d+)", title)
+    if episode_match:
+        try:
+            # Safely convert to integer
+            episode_num = int(episode_match.group(1))
+        except ValueError:
+            pass 
+    
+    # If no explicit episode found, check for a standalone number (which might be the episode number)
+    # Only assign this if a season number was also found (to avoid treating movie years as episode numbers)
+    if episode_num == 9999 and season_match:
+        # Look for a standalone number that might represent the episode (e.g., "Series Title 12")
+        # This is a bit of a heuristic and can be further refined if needed.
+        simple_number_match = re.search(r"\b(\d+)\b", title.replace(season_match.group(0), ''))
+        if simple_number_match:
+            try:
+                # Safely convert to integer
+                episode_num = int(simple_number_match.group(1))
+            except ValueError:
+                pass
+            
+    # Returns (1, 10) for S1 E10, (2, 1) for S2 E1, etc.
+    return (season_num, episode_num)
 
 
 # ----------------------------------------------------------------------
-# HOME VIEW
+# HOME VIEW (No changes needed, keeping it as the working version)
 # ----------------------------------------------------------------------
 def home(request):
     """Renders the homepage, including search functionality for movies and playlists."""
     query = request.GET.get("q")
     all_playlists = Playlist.objects.all()
-    all_movies = Movie.objects.all()
+    # Keeping the original logic from the *problematic* file to show only standalone movies.
+    all_movies = Movie.objects.filter(playlist__isnull=True) 
 
     if query:
         playlists_q = Q(name__icontains=query)
@@ -62,9 +99,20 @@ def home(request):
 
 
 def playlist_detail(request, playlist_id):
-    """Displays all movies belonging to a specific playlist."""
+    """
+    Displays all movies belonging to a specific playlist.
+    
+    UPDATED: Now sorts movies by Season number, then Episode number 
+    using the robust title extraction logic.
+    """
     playlist = get_object_or_404(Playlist, id=playlist_id)
-    movies = Movie.objects.filter(playlist=playlist).order_by('-created_at')
+    
+    # 1. Fetch all movies in the playlist
+    movies = list(Movie.objects.filter(playlist=playlist))
+    
+    # 2. Sort them using the robust episode/season number extracted from the title
+    movies.sort(key=lambda movie: extract_episode_number(movie.title))
+    
     return render(request, "playlist_detail.html", {"playlist": playlist, "movies": movies})
 
 

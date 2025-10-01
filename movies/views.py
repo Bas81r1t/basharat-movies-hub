@@ -4,67 +4,81 @@ from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt 
 from django.views.decorators.http import require_POST
 from django.utils import timezone
-# Removed: send_mail, settings, messages (since contact_view and test_email are removed)
 from django.db.models import Count, Q
 from itertools import chain
 import json
 import re
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.models import User
-
+from django.core.cache import cache
+from datetime import datetime, timezone as dt_timezone   # ✅ FIXED
 
 # -------------------------------
-# Helper function: Episode and Season number (UPDATED)
+# Helper function: Episode and Season number
 # -------------------------------
 def extract_episode_number(title):
     """
     Extracts the Season and Episode numbers from a movie/series title for correct sorting.
     Returns (season_num, episode_num).
     """
-    # 1. Season extraction (e.g., Season-1 or S01)
     season_match = re.search(r"[Ss]eason\s*(\d+)|[Ss](\d+)", title)
-    season_num = int(season_match.group(1) or season_match.group(2)) if season_match else 1 # Default to Season 1
+    season_num = int(season_match.group(1) or season_match.group(2)) if season_match else 1
 
-    # 2. Episode extraction (e.g., Episode-10 or E10)
     episode_match = re.search(r"[Ee]pisode\s*(\d+)|[Ee](\d+)", title)
-    
     if episode_match:
         episode_num = int(episode_match.group(1) or episode_match.group(2))
     else:
-        # Fallback if only one number is present and it is likely the episode (e.g., just "12")
-        # For movies with no explicit numbering, use a very high number to keep them last.
-        episode_num = float("inf")
+        episode_num = float("inf")  # movies with no episode number go last
     
-    # Returns (1, 10) for S1 E10, (2, 1) for S2 E1, etc.
     return (season_num, episode_num)
 
 
 # ----------------------------------------------------------------------
-# HOME VIEW (NO CHANGES NEEDED HERE, USING PREVIOUSLY FIXED LOGIC)
+# HOME VIEW (Optimized with caching + limited queries)
 # ----------------------------------------------------------------------
 def home(request):
-    """Renders the homepage, including search functionality for movies and playlists."""
+    """Optimized Home View with caching and limited queries"""
     query = request.GET.get("q")
-    
-    all_playlists = Playlist.objects.all()
-    # Only show standalone movies (no playlist assigned) on home page
-    all_movies = Movie.objects.filter(playlist__isnull=True) 
 
+    # Cache only if no search query
+    if not query:
+        combined_list = cache.get("home_data")
+        if combined_list:
+            return render(
+                request,
+                "home.html",
+                {
+                    "media_items": combined_list,
+                    "categories": Category.objects.all(),
+                    "query": None,
+                    "not_found": False,
+                },
+            )
+
+    # Base queries (limit + only needed fields)
+    all_playlists = Playlist.objects.only("id", "name", "created_at").order_by("-id")[:20]
+    all_movies = Movie.objects.only("id", "title", "created_at").filter(playlist__isnull=True).order_by("-id")[:20]
+
+    # If search query is present
     if query:
         playlists_q = Q(name__icontains=query)
         movies_q = Q(title__icontains=query)
-        
-        all_playlists = all_playlists.filter(playlists_q)
-        all_movies = all_movies.filter(movies_q) 
-    
+        all_playlists = Playlist.objects.filter(playlists_q).only("id", "name", "created_at")
+        all_movies = Movie.objects.filter(playlist__isnull=True).filter(movies_q).only("id", "title", "created_at")
+
+    # Merge + sort
     combined_list = list(chain(all_playlists, all_movies))
     combined_list.sort(
-        key=lambda x: x.created_at or timezone.datetime.min.replace(tzinfo=timezone.utc),
-        reverse=True
+        key=lambda x: getattr(x, "created_at", datetime.min.replace(tzinfo=dt_timezone.utc)),  # ✅ FIX
+        reverse=True,
     )
-    
+
     not_found = query and not combined_list
-    
+
+    # Cache result for 5 mins if no search
+    if not query:
+        cache.set("home_data", combined_list, 300)
+
     return render(
         request,
         "home.html",
@@ -78,26 +92,15 @@ def home(request):
 
 
 def playlist_detail(request, playlist_id):
-    """
-    Displays all movies belonging to a specific playlist.
-    
-    SORTING FIX: Movies are now sorted by Season number, then Episode number 
-    using the title string for correct sequential ordering.
-    """
+    """Displays all movies in a playlist, sorted by Season/Episode order"""
     playlist = get_object_or_404(Playlist, id=playlist_id)
-    
-    # 1. Fetch all movies in the playlist
     movies = list(Movie.objects.filter(playlist=playlist))
-    
-    # 2. Sort them using the episode/season number extracted from the title
-    # This ensures (S1, E1), (S1, E2), ..., (S1, E10), ..., (S2, E1) order.
     movies.sort(key=lambda movie: extract_episode_number(movie.title))
-    
     return render(request, "playlist_detail.html", {"playlist": playlist, "movies": movies})
 
 
 def category_detail(request, category_id):
-    """Displays all playlists and movies belonging to a specific category, with search functionality."""
+    """Displays all playlists and movies belonging to a category, with search functionality."""
     category = get_object_or_404(Category, id=category_id)
     query = request.GET.get("q")
     movies = Movie.objects.filter(category=category)
@@ -107,11 +110,10 @@ def category_detail(request, category_id):
         movies = movies.filter(title__icontains=query)
         playlists = playlists.filter(name__icontains=query)
 
-    # Combine movies and playlists for display
     items = [{"type": "movie", "obj": m} for m in movies] + [{"type": "playlist", "obj": p} for p in playlists]
     items.sort(
-        key=lambda x: x["obj"].created_at or timezone.datetime.min.replace(tzinfo=timezone.utc),
-        reverse=True
+        key=lambda x: x["obj"].created_at or datetime.min.replace(tzinfo=dt_timezone.utc),  # ✅ FIX
+        reverse=True,
     )
     return render(request, "category_detail.html", {
         "category": category,
@@ -135,16 +137,13 @@ def get_client_ip(request):
 
 
 def download_movie(request, movie_id):
-    """
-    Logs the download event and redirects the user to the actual download link.
-    """
+    """Logs the download event and redirects the user to the actual download link."""
     movie = get_object_or_404(Movie, id=movie_id)
     ip = get_client_ip(request)
     agent = request.META.get("HTTP_USER_AGENT", "")
     user_email = request.user.email if request.user.is_authenticated else None
     username = request.user.username if request.user.is_authenticated else None
 
-    # Create a log entry for the download
     DownloadLog.objects.create(
         movie_title=movie.title,
         ip_address=ip,
@@ -153,7 +152,6 @@ def download_movie(request, movie_id):
         username=username,
         download_time=timezone.now(),
     )
-    # Redirect to the external download link
     return redirect(movie.download_link)
 
 
@@ -188,7 +186,6 @@ def track_install(request):
         action_message = "Already tracked (count maintained)"
 
         if created:
-            # First install
             tracker.install_count = 1
             tracker.deleted_count = 0
             tracker.device_info = request.META.get("HTTP_USER_AGENT", "")
@@ -196,13 +193,11 @@ def track_install(request):
             tracker.last_action = "install"
             action_message = "New install tracked"
         elif tracker.install_count == 0:
-            # Re-install after deletion
             tracker.install_count = 1
             tracker.device_name = device_name
             tracker.last_action = "reinstall"
             action_message = "Re-install tracked (count restored)"
         else:
-            # Re-opening the app
             tracker.last_action = "install (re-open)"
             tracker.device_name = device_name
 
@@ -251,7 +246,7 @@ def track_uninstall(request):
 
     except json.JSONDecodeError:
         return JsonResponse({'success': False, 'message': 'Invalid JSON'}, status=400)
-    except Exception as e:
+    except Exception:
         return JsonResponse({'success': False, 'message': 'Server error'}, status=500)
 
 

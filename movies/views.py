@@ -51,8 +51,9 @@ def extract_episode_number(title):
     # Only assign this if a season number was also found (to avoid treating movie years as episode numbers)
     if episode_num == 9999 and season_match:
         # Look for a standalone number that might represent the episode (e.g., "Series Title 12")
-        # This is a bit of a heuristic and can be further refined if needed.
-        simple_number_match = re.search(r"\b(\d+)\b", title.replace(season_match.group(0), ''))
+        # This part handles simple titles like "Show Name 1", "Show Name 2" within a season.
+        cleaned_title = title.replace(season_match.group(0), '')
+        simple_number_match = re.search(r"\b(\d+)\b", cleaned_title)
         if simple_number_match:
             try:
                 # Safely convert to integer
@@ -64,8 +65,29 @@ def extract_episode_number(title):
     return (season_num, episode_num)
 
 
+# -------------------------------
+# Helper function: Extracting order number (e.g., 1., 2., 10.)
+# -------------------------------
+def extract_movie_order_number(title):
+    """
+    Extracts the numeric order number (e.g., 1, 2, 10) from the start of a title.
+    Returns 9999 if no number is found, ensuring it sorts last.
+    """
+    title = title or ""
+    # RegEx searches for one or more digits at the start of the string, followed by a dot.
+    match = re.match(r'^(\d+)\.', title.strip())
+    if match:
+        try:
+            # Safely convert the captured number (group 1) to an integer
+            return int(match.group(1))
+        except ValueError:
+            pass 
+    # Default to a high number if no sequence number is found
+    return 9999
+
+
 # ----------------------------------------------------------------------
-# HOME VIEW (No changes needed, keeping it as the working version)
+# HOME VIEW 
 # ----------------------------------------------------------------------
 def home(request):
     """Renders the homepage, including search functionality for movies and playlists."""
@@ -102,36 +124,87 @@ def playlist_detail(request, playlist_id):
     """
     Displays all movies belonging to a specific playlist.
     
-    UPDATED: Now sorts movies by Season number, then Episode number 
-    using the robust title extraction logic.
+    Now intelligently sorts by:
+    1. Numeric Order (e.g., "1. Movie Name") if detected (for Marvel Universe).
+    2. Season/Episode Order (e.g., "S01E01") if numeric order is not detected (for Web Series).
     """
     playlist = get_object_or_404(Playlist, id=playlist_id)
     
     # 1. Fetch all movies in the playlist
     movies = list(Movie.objects.filter(playlist=playlist))
     
-    # 2. Sort them using the robust episode/season number extracted from the title
-    movies.sort(key=lambda movie: extract_episode_number(movie.title))
+    # Check if this is a 'Movie Order' type playlist (like Marvel Universe)
+    has_numeric_order = False
     
+    # Check the first 5 movies (or fewer if the list is smaller)
+    for movie in movies[:5]:
+        if extract_movie_order_number(movie.title) != 9999:
+            has_numeric_order = True
+            break
+            
+    if has_numeric_order:
+        # Sort using the numeric order from the title (1, 2, 3...)
+        movies.sort(key=lambda movie: extract_movie_order_number(movie.title))
+        
+    else:
+        # Default to Season/Episode sorting (S01E01, S01E02)
+        movies.sort(key=lambda movie: extract_episode_number(movie.title))
+        
     return render(request, "playlist_detail.html", {"playlist": playlist, "movies": movies})
 
 
 def category_detail(request, category_id):
-    """Displays all playlists and movies belonging to a specific category, with search functionality."""
+    """
+    Displays all playlists and movies belonging to a specific category, with search functionality.
+    
+    <--- YAHAN PAR HUM NAYA SORTING LOGIC ADD KAR RAHE HAIN --->
+    """
     category = get_object_or_404(Category, id=category_id)
     query = request.GET.get("q")
-    movies = Movie.objects.filter(category=category)
+    
+    # Category ke saare movies fetch kiye
+    movies = list(Movie.objects.filter(category=category))
     playlists = Playlist.objects.filter(category=category)
 
     if query:
-        movies = movies.filter(title__icontains=query)
+        movies = [m for m in movies if query.lower() in m.title.lower()] # Filtering movies in memory
         playlists = playlists.filter(name__icontains=query)
 
+    # ------------------ NAYA SORTING LOGIC YAHAN SHURU HOTA HAI ------------------
+    
+    # Check if any movie in this category follows the '1. 2. 3.' format
+    has_numeric_order = False
+    for movie in movies[:5]: # Only check first few movies for performance
+        if extract_movie_order_number(movie.title) != 9999:
+            has_numeric_order = True
+            break
+            
+    if has_numeric_order:
+        # Agar numeric order mila (jaise Marvel Universe mein), to movies ko us number se sort karo
+        movies.sort(key=lambda movie: extract_movie_order_number(movie.title))
+        
+    else:
+        # Agar numeric order nahi mila, to movies aur playlists ko created_at ke hisaab se sort karo
+        # Note: Category mein movies aur playlists dono ko sort karna padta hai, isliye thoda complex hai.
+        # Movies ko unki title ya episode number se sort karne ki zaroorat nahi hai, 
+        # kyuki Category page par Web Series ke alag-alag episodes ki jagah sirf Playlist hi dikhti hai.
+        # Lekin agar movies standalone hain, toh unko latest created_at ke hisab se sort karna theek hai.
+        pass # Created_at sorting niche ho raha hai, isliye yahan kuch nahi karenge.
+
+
+    # Items ko combine karke final sorting (created_at par default)
     items = [{"type": "movie", "obj": m} for m in movies] + [{"type": "playlist", "obj": p} for p in playlists]
-    items.sort(
-        key=lambda x: x["obj"].created_at or timezone.datetime.min.replace(tzinfo=timezone.utc),
-        reverse=True
-    )
+    
+    # Agar numeric order sorting use hui hai, to items list ka order already set ho chuka hai.
+    if not has_numeric_order:
+        # Agar numeric order use nahi hua hai, to created_at ke hisab se sort karo
+        items.sort(
+            key=lambda x: x["obj"].created_at or timezone.datetime.min.replace(tzinfo=timezone.utc),
+            reverse=True
+        )
+    
+    # ------------------ NAYA SORTING LOGIC YAHAN KHATAM HOTA HAI ------------------
+    
     return render(request, "category_detail.html", {
         "category": category,
         "items": items,

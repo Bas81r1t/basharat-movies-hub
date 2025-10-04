@@ -10,6 +10,9 @@ import json
 import re
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.models import User
+# 🆕 Email related imports for the new movie request feature
+from django.core.mail import send_mail
+from django.conf import settings
 
 
 # -------------------------------
@@ -85,6 +88,74 @@ def extract_movie_order_number(title):
     # Default to a high number if no sequence number is found
     return 9999
 
+# -------------------------------
+# Helper function to get client IP
+# -------------------------------
+def get_client_ip(request):
+    """Helper function to get the client's IP address."""
+    x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
+    if x_forwarded_for:
+        return x_forwarded_for.split(",")[0]
+    return request.META.get("REMOTE_ADDR")
+
+
+# ----------------------------------------------------------------------
+# MOVIE REQUEST SUBMISSION (New Feature)
+# ----------------------------------------------------------------------
+@csrf_exempt
+@require_POST
+def submit_movie_request(request):
+    """
+    Handles POST request for a new movie request, sends an email notification to the admin,
+    and returns a success message to the user.
+    """
+    try:
+        data = json.loads(request.body)
+        movie_name = data.get("movie_name", "").strip()
+        contact_info = data.get("contact_info", "").strip()
+        client_ip = get_client_ip(request)
+
+        if not movie_name:
+            return JsonResponse({"status": "error", "message": "Movie name is required."}, status=400)
+        
+        # 1. Prepare Email Content
+        subject = f"[Movie Hub Request] New movie request: {movie_name}"
+        message = (
+            f"A new movie request has been submitted:\n\n"
+            f"Movie Name: {movie_name}\n"
+            f"Contact Info (Optional): {contact_info or 'N/A'}\n"
+            f"Client IP: {client_ip}\n"
+            f"Time: {timezone.now().strftime('%Y-%m-%d %H:%M:%S')} (UTC)"
+        )
+
+        # 2. Send Email Notification to Admin
+        recipient_list = settings.ADMIN_NOTIFY_EMAIL
+        
+        if recipient_list:
+            send_mail(
+                subject,
+                message,
+                settings.DEFAULT_FROM_EMAIL,
+                recipient_list,
+                fail_silently=False, # Agar email fail hua toh error throw karega
+            )
+            
+        # NOTE: Agar tum future mein database mein requests save karna chahogi, toh yahan
+        #       MovieRequest.objects.create(...) ka logic add kar sakti ho.
+        
+        return JsonResponse({
+            "status": "success", 
+            "message": "Your request has been submitted successfully. Thank you!"
+        })
+
+    except json.JSONDecodeError:
+        return JsonResponse({"status": "error", "message": "Invalid data format."}, status=400)
+    except Exception as e:
+        # Error ko console mein print karo for debugging
+        print(f"Error sending movie request email: {e}")
+        # User ko ek generic error message do
+        return JsonResponse({"status": "error", "message": "An unexpected error occurred. Please try again later."}, status=500)
+
 
 # ----------------------------------------------------------------------
 # HOME VIEW 
@@ -156,8 +227,6 @@ def playlist_detail(request, playlist_id):
 def category_detail(request, category_id):
     """
     Displays all playlists and movies belonging to a specific category, with search functionality.
-    
-    <--- YAHAN PAR HUM NAYA SORTING LOGIC ADD KAR RAHE HAIN --->
     """
     category = get_object_or_404(Category, id=category_id)
     query = request.GET.get("q")
@@ -170,7 +239,7 @@ def category_detail(request, category_id):
         movies = [m for m in movies if query.lower() in m.title.lower()] # Filtering movies in memory
         playlists = playlists.filter(name__icontains=query)
 
-    # ------------------ NAYA SORTING LOGIC YAHAN SHURU HOTA HAI ------------------
+    # ------------------ SORTING LOGIC ------------------
     
     # Check if any movie in this category follows the '1. 2. 3.' format
     has_numeric_order = False
@@ -183,27 +252,17 @@ def category_detail(request, category_id):
         # Agar numeric order mila (jaise Marvel Universe mein), to movies ko us number se sort karo
         movies.sort(key=lambda movie: extract_movie_order_number(movie.title))
         
-    else:
-        # Agar numeric order nahi mila, to movies aur playlists ko created_at ke hisaab se sort karo
-        # Note: Category mein movies aur playlists dono ko sort karna padta hai, isliye thoda complex hai.
-        # Movies ko unki title ya episode number se sort karne ki zaroorat nahi hai, 
-        # kyuki Category page par Web Series ke alag-alag episodes ki jagah sirf Playlist hi dikhti hai.
-        # Lekin agar movies standalone hain, toh unko latest created_at ke hisab se sort karna theek hai.
-        pass # Created_at sorting niche ho raha hai, isliye yahan kuch nahi karenge.
-
-
     # Items ko combine karke final sorting (created_at par default)
     items = [{"type": "movie", "obj": m} for m in movies] + [{"type": "playlist", "obj": p} for p in playlists]
     
-    # Agar numeric order sorting use hui hai, to items list ka order already set ho chuka hai.
+    # Agar numeric order sorting use nahi hua hai, to created_at ke hisab se sort karo
     if not has_numeric_order:
-        # Agar numeric order use nahi hua hai, to created_at ke hisab se sort karo
         items.sort(
             key=lambda x: x["obj"].created_at or timezone.datetime.min.replace(tzinfo=timezone.utc),
             reverse=True
         )
     
-    # ------------------ NAYA SORTING LOGIC YAHAN KHATAM HOTA HAI ------------------
+    # ------------------ SORTING LOGIC KHATAM HOTA HAI ------------------
     
     return render(request, "category_detail.html", {
         "category": category,
@@ -216,14 +275,6 @@ def movie_detail(request, movie_id):
     """Displays the detail page for a specific movie."""
     movie = get_object_or_404(Movie, id=movie_id)
     return render(request, "movie_detail.html", {"movie": movie})
-
-
-def get_client_ip(request):
-    """Helper function to get the client's IP address."""
-    x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
-    if x_forwarded_for:
-        return x_forwarded_for.split(",")[0]
-    return request.META.get("REMOTE_ADDR")
 
 
 def download_movie(request, movie_id):

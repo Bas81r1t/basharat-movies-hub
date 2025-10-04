@@ -11,7 +11,7 @@ import dj_database_url
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # ------------------------------
-# Load .env file
+# Load .env file (for local development)
 # ------------------------------
 load_dotenv(dotenv_path=os.path.join(BASE_DIR, '.env'))
 
@@ -55,7 +55,8 @@ INSTALLED_APPS = [
 # ------------------------------
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',
+    # WhiteNoise is essential for serving static files on Render
+    'whitenoise.middleware.WhiteNoiseMiddleware', 
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -125,7 +126,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # ------------------------------
-# Media Files
+# Media Files (Handled by Cloudinary)
 # ------------------------------
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
@@ -147,23 +148,36 @@ cloudinary.config(
 )
 
 # ------------------------------
-# Email Configuration
+# Email Configuration (Production Ready)
 # ------------------------------
-EMAIL_BACKEND = config('EMAIL_BACKEND').strip()
+# Note: config() uses environment variables on Render
+EMAIL_BACKEND = config('EMAIL_BACKEND', default='django.core.mail.backends.console.EmailBackend').strip()
 EMAIL_HOST = config('EMAIL_HOST').strip()
-EMAIL_PORT = config('EMAIL_PORT', cast=int)
+EMAIL_PORT = config('EMAIL_PORT', cast=int, default=587)
 
-# Sendinblue (Brevo) uses TLS on port 587.
-# We ensure these boolean values are correctly cast from the .env file.
-EMAIL_USE_TLS = config('EMAIL_USE_TLS', cast=bool)
-EMAIL_USE_SSL = config('EMAIL_USE_SSL', cast=bool) # Should be False
+# Sendinblue (Brevo) typically uses TLS on port 587.
+# Use 'default=False' for booleans to avoid issues if not set in environment.
+EMAIL_USE_TLS = config('EMAIL_USE_TLS', cast=bool, default=False)
+EMAIL_USE_SSL = config('EMAIL_USE_SSL', cast=bool, default=False) 
 
 EMAIL_HOST_USER = config('EMAIL_HOST_USER').strip()
-EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD').strip() # CRITICAL: This must be the Sendinblue SMTP Key, not your login password.
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD').strip() 
 DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL').strip()
 
 # Increase timeout to prevent Render worker timeouts during send
 EMAIL_TIMEOUT = 60
+
+# -------------------------------------------------------------
+# Custom Notification Configuration (For Movie Requests)
+# -------------------------------------------------------------
+# Define the email addresses that will receive the movie request notifications.
+ADMIN_NOTIFY_EMAILS_RAW = config('ADMIN_NOTIFY_EMAILS', default='').strip()
+ADMIN_NOTIFY_EMAIL = [email.strip() for email in ADMIN_NOTIFY_EMAILS_RAW.split(',') if email.strip()]
+
+# Agar koi specific email nahi set kiya gaya hai, toh default bhejnewale email ko use karo.
+if not ADMIN_NOTIFY_EMAIL and EMAIL_HOST_USER:
+    ADMIN_NOTIFY_EMAIL = [EMAIL_HOST_USER]
+
 
 # ------------------------------
 # CSRF Trusted Origins

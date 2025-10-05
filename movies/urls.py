@@ -15,12 +15,6 @@ urlpatterns = [
     path("download/<int:movie_id>/", views.download_movie, name="download_movie"),
 
     # -------------------------
-    # Movie Request API (NEWLY ADDED)
-    # This URL is needed for the AJAX request from home.html
-    # -------------------------
-    path('request/submit/', views.submit_movie_request, name='submit_movie_request'),
-
-    # -------------------------
     # PWA Install & Uninstall Tracking
     # -------------------------
     path("track-install/", views.track_install, name="track_install"),
@@ -42,5 +36,4 @@ urlpatterns = [
     # Django Admin
     # -------------------------
     path("admin/", admin.site.urls),
-
 ]

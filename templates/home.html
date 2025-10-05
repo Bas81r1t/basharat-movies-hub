@@ -1,35 +1,30 @@
 {% extends 'base.html' %}
-
 {% load static %}
 {% load cloudinary %}
 
 {% block content %}
-
 <style>
-/* Movie card styles */
+/* 🎬 Movie card styles */
 .movie-card {
     transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
     border-radius: 12px;
     box-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
     border: 1px solid rgba(255, 255, 255, 0.1);
 }
-
 .movie-card:hover {
     transform: scale(1.02);
     box-shadow: 0 0 10px rgba(255, 255, 255, 0.7);
 }
-
 .movie-card:active {
     box-shadow: 0 0 15px rgba(255, 0, 0, 0.7);
 }
-
 .card-img-top {
     width: 100%;
     height: 270px;
     object-fit: cover;
 }
 
-/* Category button styles */
+/* 🧭 Category buttons */
 .category-buttons-container {
     display: flex;
     flex-wrap: wrap;
@@ -37,7 +32,6 @@
     gap: 0.5rem;
     margin-bottom: 1.5rem;
 }
-
 .category-button {
     background-color: #2e3032;
     color: #ffffff;
@@ -48,50 +42,27 @@
     border: 1px solid #4a4d50;
     transition: background-color 0.3s ease, transform 0.2s ease;
 }
-
 .category-button:hover {
     background-color: #4a4d50;
     transform: scale(1.05);
 }
 
-/* Request button styling */
-#requestMovieBtn {
-    background-color: #dc3545; /* Red or eye-catching color */
-    border-color: #dc3545;
-    font-weight: bold;
-    transition: background-color 0.3s ease;
+/* 📱 Responsive adjustments */
+.container-fluid,
+.container {
+    padding-left: 5px;
+    padding-right: 5px;
 }
-
-#requestMovieBtn:hover {
-    background-color: #c82333;
-}
-
-/* Modal styles (optional, for dark theme consistency) */
-.modal-content {
-    background-color: #1e1e1e; /* Darker background for modal */
-    color: #ffffff;
-}
-.modal-header {
-    border-bottom-color: #333;
-}
-.modal-footer {
-    border-top-color: #333;
+@media (max-width: 576px) {
+    .movie-card {
+        width: 100%;
+    }
 }
 </style>
 
 <div class="container mt-4">
-    <!-- Hidden CSRF token for JavaScript AJAX requests -->
-    {% csrf_token %}
-    
-    <!-- 1. UPDATED: Request Movie Button (Centered) -->
-    <!-- 'd-flex justify-content-end' was replaced with 'text-center' -->
-    <div class="text-center mb-3">
-        <button type="button" id="requestMovieBtn" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#movieRequestModal">
-            Request Movie
-        </button>
-    </div>
 
-    <!-- 2. Search bar -->
+    <!-- 🔍 Search bar -->
     <form method="get" action="{% url 'home' %}" class="mb-4">
         <div class="input-group">
             <input type="text" name="q" class="form-control" placeholder="Search movies & playlists..." value="{{ query|default:'' }}">
@@ -103,13 +74,6 @@
         <h4>Search Results for: "{{ query }}"</h4>
         {% if not_found %}
             <div class="alert alert-warning mt-3">😢 Sorry! Kuch nahi mila.</div>
-            
-            <!-- Show Request button again if search failed -->
-            <div class="text-center my-4">
-                <button type="button" id="requestMovieBtnBottom" class="btn btn-lg btn-danger" data-bs-toggle="modal" data-bs-target="#movieRequestModal">
-                    Movie Request Submit Karo!
-                </button>
-            </div>
         {% endif %}
     {% else %}
         <h2 class="mb-3 text-center"></h2>
@@ -122,14 +86,13 @@
         </div>
     {% endif %}
 
-    <!-- Media items grid -->
+    <!-- 🎞 Media items grid -->
     <div class="row mt-4 gx-3">
         {% for item in media_items %}
             <div class="col-6 col-sm-4 col-md-3 mb-3">
                 <div class="card movie-card h-100">
-
-                    {% comment %} Playlist item {% endcomment %}
                     {% if item.name %}
+                        {# Playlist item #}
                         <a href="{% url 'playlist_detail' item.id %}" class="title-link">
                             {% if item.banner %}
                                 {% cloudinary item.banner class="card-img-top" alt=item.name %}
@@ -140,9 +103,8 @@
                                 <h5 class="card-title">{{ item.name }}</h5>
                             </div>
                         </a>
-
                     {% else %}
-                        {% comment %} Movie item {% endcomment %}
+                        {# Movie item #}
                         <a href="{% url 'movie_detail' item.id %}" class="title-link">
                             {% if item.poster %}
                                 {% cloudinary item.poster class="card-img-top" alt=item.title %}
@@ -154,145 +116,10 @@
                             </div>
                         </a>
                     {% endif %}
-
                 </div>
             </div>
         {% endfor %}
     </div>
 
 </div>
-
-<!-- 🆕 Movie Request Modal -->
-<div class="modal fade" id="movieRequestModal" tabindex="-1" aria-labelledby="movieRequestModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="movieRequestModalLabel">Request a Movie/Series</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <form id="movieRequestForm">
-                <div class="modal-body">
-                    <div id="requestMessage" class="mb-3 d-none"></div>
-
-                    <div id="requestFormFields">
-                        <p class="text-muted">Koi bhi Movie ya Web Series jo tumhe chahiye, uska naam yahan likh do. Hum jaldi se jaldi upload karne ki koshish karenge.</p>
-                        
-                        <div class="mb-3">
-                            <label for="movieName" class="form-label">Movie/Series Name <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" id="movieName" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="contactInfo" class="form-label">Apna Contact/Email ID (Optional)</label>
-                            <input type="text" class="form-control" id="contactInfo" placeholder="e.g., yourname@email.com (agar update chahiye)">
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer" id="requestModalFooter">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="submit" id="submitRequestBtn" class="btn btn-danger">
-                        <span id="submitSpinner" class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
-                        Submit Request
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<script>
-    // 🆕 JavaScript for handling Movie Request Submission via AJAX
-    document.addEventListener('DOMContentLoaded', function() {
-        const form = document.getElementById('movieRequestForm');
-        const movieNameInput = document.getElementById('movieName');
-        const contactInfoInput = document.getElementById('contactInfo');
-        const submitButton = document.getElementById('submitRequestBtn');
-        const submitSpinner = document.getElementById('submitSpinner');
-        const requestMessageDiv = document.getElementById('requestMessage');
-        const requestFormFields = document.getElementById('requestFormFields');
-        const requestModalFooter = document.getElementById('requestModalFooter');
-
-        // Function to get the CSRF token from the hidden input field
-        function getCsrfToken() {
-            return document.querySelector('[name=csrfmiddlewaretoken]').value;
-        }
-
-        form.addEventListener('submit', function(event) {
-            event.preventDefault(); // Stop default form submission
-
-            const movieName = movieNameInput.value.trim();
-            const contactInfo = contactInfoInput.value.trim();
-
-            if (!movieName) {
-                requestMessageDiv.textContent = "Please enter the movie or series name.";
-                requestMessageDiv.className = 'alert alert-warning mb-3';
-                requestMessageDiv.classList.remove('d-none');
-                return;
-            }
-
-            // Disable button and show spinner
-            submitButton.disabled = true;
-            submitSpinner.classList.remove('d-none');
-
-            const url = "{% url 'submit_movie_request' %}";
-            const data = {
-                movie_name: movieName,
-                contact_info: contactInfo
-            };
-
-            fetch(url, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': getCsrfToken()
-                },
-                body: JSON.stringify(data)
-            })
-            .then(response => response.json().then(data => ({ status: response.status, body: data })))
-            .then(res => {
-                // Hide form fields and footer buttons
-                requestFormFields.classList.add('d-none');
-                requestModalFooter.classList.add('d-none');
-                
-                // Show the message area
-                requestMessageDiv.classList.remove('d-none');
-                requestMessageDiv.textContent = res.body.message;
-                
-                if (res.status === 200 && res.body.status === 'success') {
-                    // Success
-                    requestMessageDiv.className = 'alert alert-success mb-3';
-                    // Clear the inputs
-                    movieNameInput.value = '';
-                    contactInfoInput.value = '';
-                } else {
-                    // Error
-                    requestMessageDiv.className = 'alert alert-danger mb-3';
-                }
-            })
-            .catch(error => {
-                console.error('Error submitting request:', error);
-                requestMessageDiv.textContent = "Request failed. Check your network or try again later.";
-                requestMessageDiv.className = 'alert alert-danger mb-3';
-                requestMessageDiv.classList.remove('d-none');
-            })
-            .finally(() => {
-                // Re-enable button and hide spinner (only if re-submitting)
-                // Since the modal content is changed on success/failure, we don't re-enable the button here.
-                submitSpinner.classList.add('d-none');
-            });
-        });
-        
-        // Reset the modal content when it is closed or opened
-        const movieRequestModal = document.getElementById('movieRequestModal');
-        movieRequestModal.addEventListener('hidden.bs.modal', function () {
-            // Reset to initial state
-            requestFormFields.classList.remove('d-none');
-            requestModalFooter.classList.remove('d-none');
-            requestMessageDiv.classList.add('d-none');
-            requestMessageDiv.textContent = '';
-            submitButton.disabled = false;
-        });
-
-    });
-</script>
-
 {% endblock %}

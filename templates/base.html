@@ -1,12 +1,10 @@
 {% load static %}
 {% load cloudinary %}
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-
     <title>Basharat Movies Hub</title>
 
     <!-- Bootstrap CSS -->
@@ -39,6 +37,11 @@
             flex: 1 0 auto;
         }
 
+        /* NOTE: Lenis fix - main element should have the lenis-content ID if it contains the main scrollable content */
+        main#lenis-content {
+            flex: 1 0 auto;
+        }
+
         footer {
             flex-shrink: 0;
             background-color: #222;
@@ -52,6 +55,7 @@
             transform: translateY(30px);
             transition: all 0.8s ease-out;
         }
+
         .scroll-section.active {
             opacity: 1;
             transform: translateY(0);
@@ -61,13 +65,14 @@
             color: #4da6ff;
             transition: color 0.3s ease;
         }
+
         footer a:hover {
             color: #1a73e8;
         }
 
         .navbar-scrolled {
-            background-color: rgba(34,34,34,0.95) !important;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            background-color: rgba(34, 34, 34, 0.95) !important;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             transition: all 0.3s ease-in-out;
         }
 
@@ -84,10 +89,11 @@
             border-radius: 5px;
             cursor: pointer;
         }
+
         #install-btn:hover {
             background-color: #1a73e8;
         }
-        
+
         /* --- Movie Card Styling (Retained for content) --- */
         .movie-card {
             background-color: #2e3032;
@@ -116,7 +122,6 @@
 <body>
 
     <div id="lenis-wrapper">
-
         <!-- Navbar -->
         <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
             <div class="container-fluid">
@@ -127,22 +132,26 @@
 
                 <div class="collapse navbar-collapse" id="navbarNav">
                     <ul class="navbar-nav ms-auto">
-                        <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
-                        {% if user.is_authenticated and user.is_staff %}{% endif %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="/">Home</a>
+                        </li>
+                        {% if user.is_authenticated and user.is_staff %}
+                        {% endif %}
                         {% if user.is_authenticated %}
-                            <li class="nav-item"><a class="nav-link disabled">Hi {{ user.username }}</a></li>
+                            <li class="nav-item">
+                                <a class="nav-link disabled">Hi {{ user.username }}</a>
+                            </li>
                         {% else %}
-                            <li class="nav-item"><a class="nav-link" href="/admin/login/">Admin Login</a></li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="/admin/login/">Admin Login</a>
+                            </li>
                         {% endif %}
                     </ul>
                 </div>
             </div>
         </nav>
 
-        <main class="container my-4">
-            
-            <!-- Removed: Movie Request Button Block -->
-            
+        <main id="lenis-content" class="container my-4">
             {% if messages %}
                 <div class="alert-container mb-4">
                     {% for message in messages %}
@@ -155,24 +164,19 @@
             {% endif %}
 
             {% block content %}{% endblock %}
-
         </main>
 
         <footer>
             <p class="mb-1">© 2025 Basharat Movies Hub | Made ❤️ by Basharat</p>
-            <!-- Removed: Full DMCA Disclaimer Text Block -->
         </footer>
 
         <button id="install-btn">Install App</button>
-
-        <!-- Removed: Movie Request Modal -->
-
     </div>
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-      <!-- Lenis Library CDN (Yahan add kiya hai) -->
+    <!-- Lenis Library CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@studio-freight/lenis@1.0.35/dist/lenis.min.js"></script>
 
     <!-- PWA Install Tracker JS -->
@@ -180,8 +184,6 @@
 
     <!-- Custom JS -->
     <script src="{% static 'js/index.js' %}"></script>
-
-    <!-- Removed: AJAX Form Submission Script -->
 
 </body>
 </html>

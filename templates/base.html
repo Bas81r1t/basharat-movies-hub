@@ -117,6 +117,57 @@
             font-size: 1rem;
             text-overflow: ellipsis;
         }
+
+         /* --- Pagination Custom Styles --- */
+.pagination {
+    margin-top: 2rem;
+    margin-bottom: 2rem;
+}
+
+.page-item .page-link {
+    /* Background and Border for Default/Disabled Buttons */
+    background-color: #2e3032; /* Dark background */
+    border: 1px solid #4a4d50; /* Darker border */
+    color: #ffffff; /* White text */
+    margin: 0 4px; /* Space between buttons */
+    border-radius: 8px !important; /* Rounded corners */
+    transition: all 0.2s ease;
+    min-width: 40px; /* Minimum width for number buttons */
+    text-align: center;
+}
+
+/* Hover/Focus State */
+.page-item .page-link:hover,
+.page-item .page-link:focus {
+    background-color: #4a4d50; /* Slightly lighter dark on hover */
+    color: #ffffff;
+    box-shadow: 0 0 8px rgba(255, 255, 255, 0.5); /* Subtle white glow */
+    transform: scale(1.05);
+}
+
+/* Disabled State */
+.page-item.disabled .page-link {
+    opacity: 0.5; /* Fade out disabled buttons */
+    pointer-events: none; /* Disable click */
+}
+
+/* Active State (The current page button) */
+.page-item.active .page-link {
+    background-color: #e50914 !important; /* Netflix Red or your preferred accent color */
+    border-color: #ff3333 !important; /* Brighter red border */
+    color: white !important;
+    font-weight: bold;
+    box-shadow: 0 0 10px rgba(255, 0, 0, 0.7); /* Strong red glow */
+    transform: scale(1.05); /* Slightly bigger active button */
+}
+
+/* Active state for span (if using Bootstrap default active structure) */
+.page-item.active span.page-link {
+    background-color: #e50914 !important;
+    border-color: #ff3333 !important;
+    color: white !important;
+}
+
     </style>
 </head>
 <body>

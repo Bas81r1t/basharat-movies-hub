@@ -10,6 +10,7 @@ import json
 import re
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.models import User
+from django.core.paginator import Paginator, EmptyPage # EmptyPage को भी इम्पोर्ट किया
 
 
 # -------------------------------
@@ -25,7 +26,7 @@ def extract_episode_number(title):
 
     # Default values: Season 1, and a very high episode number (for movies or unsorted items)
     season_num = 1
-    episode_num = 9999 
+    episode_num = 9999
 
     # 1. Season extraction (e.g., season 1, s01, s 1)
     # Searches for 's' or 'season' followed by digits
@@ -35,7 +36,7 @@ def extract_episode_number(title):
             # Safely convert to integer
             season_num = int(season_match.group(1))
         except ValueError:
-            pass 
+            pass
 
     # 2. Episode extraction (e.g., episode 10, e10, e 10)
     # Searches for 'e' or 'episode' followed by digits
@@ -45,8 +46,8 @@ def extract_episode_number(title):
             # Safely convert to integer
             episode_num = int(episode_match.group(1))
         except ValueError:
-            pass 
-    
+            pass
+
     # If no explicit episode found, check for a standalone number (which might be the episode number)
     # Only assign this if a season number was also found (to avoid treating movie years as episode numbers)
     if episode_num == 9999 and season_match:
@@ -60,7 +61,7 @@ def extract_episode_number(title):
                 episode_num = int(simple_number_match.group(1))
             except ValueError:
                 pass
-            
+
     # Returns (1, 10) for S1 E10, (2, 1) for S2 E1, etc.
     return (season_num, episode_num)
 
@@ -81,20 +82,19 @@ def extract_movie_order_number(title):
             # Safely convert the captured number (group 1) to an integer
             return int(match.group(1))
         except ValueError:
-            pass 
+            pass
     # Default to a high number if no sequence number is found
     return 9999
 
 
 # ----------------------------------------------------------------------
-# HOME VIEW 
+# HOME VIEW (FIXED for 24/20 Pagination Overlap)
 # ----------------------------------------------------------------------
 def home(request):
     """Renders the homepage, including search functionality for movies and playlists."""
     query = request.GET.get("q")
     all_playlists = Playlist.objects.all()
-    # Keeping the original logic from the *problematic* file to show only standalone movies.
-    all_movies = Movie.objects.filter(playlist__isnull=True) 
+    all_movies = Movie.objects.filter(playlist__isnull=True)
 
     if query:
         playlists_q = Q(name__icontains=query)
@@ -107,15 +107,53 @@ def home(request):
         key=lambda x: x.created_at or timezone.datetime.min.replace(tzinfo=timezone.utc),
         reverse=True
     )
+
+    # --- 👇 FIXED Pagination Logic Yahan se Shuru Hota Hai! 👇 ---
+    
+    page_number = request.GET.get('page')
+    
+    # 1. Base Paginator Hamesha Page 1 ke Size (24) par set karo
+    # Taki total pages ki calculation sahi ho.
+    paginator = Paginator(combined_list, 24) 
+
+    # 2. Requested page ka data fetch karo
+    try:
+        page_obj = paginator.get_page(page_number)
+    except EmptyPage:
+        page_obj = paginator.get_page(paginator.num_pages)
+    except:
+        page_obj = paginator.get_page(1) # Default to page 1 in case of any error
+
+
+    # 3. Agar page 2 ya usse aage hain, toh Page 1 ke 'extra' 4 items ko hata do.
+    # Page 1 = 24 items. Page 2, 3... = 20 items.
+    
+    # Check if we are not on the first page and there are enough items for slicing
+    if page_obj.number > 1 and len(page_obj) > 4:
+        # Paginator ne 24 items diye, hamein pehle ke 4 items hataane hain
+        # Taki sirf 20 items bachein (24 - 4 = 20)
+        # Slicing: [4:] ka matlab hai ki index 4 se aage ke saare items lo.
+        media_items_sliced = page_obj.object_list[4:]
+    elif page_obj.number == 1 or page_obj.number == paginator.num_pages:
+        # First page ya last page par poore items dikhao (24 ya bache hue)
+        media_items_sliced = page_obj.object_list
+    else:
+        # Default fallback
+        media_items_sliced = page_obj.object_list
+
+    # --- 👆 FIXED Pagination Logic Yahan Khatam Hota Hai! 👆 ---
+
     not_found = query and not combined_list
     return render(
         request,
         "home.html",
         {
-            "media_items": combined_list,
+            # Updated: media_items ko sliced list se set kar rahe hain, lekin page_obj original rahega
+            "media_items": media_items_sliced, 
             "categories": Category.objects.all(),
             "query": query,
             "not_found": not_found,
+            "page_obj": page_obj, # Pagination buttons is original page_obj ka use karenge
         },
     )
 
@@ -123,45 +161,40 @@ def home(request):
 def playlist_detail(request, playlist_id):
     """
     Displays all movies belonging to a specific playlist.
-    
-    Now intelligently sorts by:
-    1. Numeric Order (e.g., "1. Movie Name") if detected (for Marvel Universe).
-    2. Season/Episode Order (e.g., "S01E01") if numeric order is not detected (for Web Series).
     """
     playlist = get_object_or_404(Playlist, id=playlist_id)
-    
+
     # 1. Fetch all movies in the playlist
     movies = list(Movie.objects.filter(playlist=playlist))
-    
+
     # Check if this is a 'Movie Order' type playlist (like Marvel Universe)
     has_numeric_order = False
-    
+
     # Check the first 5 movies (or fewer if the list is smaller)
     for movie in movies[:5]:
         if extract_movie_order_number(movie.title) != 9999:
             has_numeric_order = True
             break
-            
+
     if has_numeric_order:
         # Sort using the numeric order from the title (1, 2, 3...)
         movies.sort(key=lambda movie: extract_movie_order_number(movie.title))
-        
+
     else:
         # Default to Season/Episode sorting (S01E01, S01E02)
         movies.sort(key=lambda movie: extract_episode_number(movie.title))
-        
+
     return render(request, "playlist_detail.html", {"playlist": playlist, "movies": movies})
 
 
 def category_detail(request, category_id):
     """
     Displays all playlists and movies belonging to a specific category, with search functionality.
-    
-    <--- YAHAN PAR HUM NAYA SORTING LOGIC ADD KAR RAHE HAIN --->
+    Includes FIX for 24/20 Pagination Overlap.
     """
     category = get_object_or_404(Category, id=category_id)
     query = request.GET.get("q")
-    
+
     # Category ke saare movies fetch kiye
     movies = list(Movie.objects.filter(category=category))
     playlists = Playlist.objects.filter(category=category)
@@ -170,45 +203,62 @@ def category_detail(request, category_id):
         movies = [m for m in movies if query.lower() in m.title.lower()] # Filtering movies in memory
         playlists = playlists.filter(name__icontains=query)
 
-    # ------------------ NAYA SORTING LOGIC YAHAN SHURU HOTA HAI ------------------
-    
-    # Check if any movie in this category follows the '1. 2. 3.' format
+    # ------------------ SORTING LOGIC ------------------
+
     has_numeric_order = False
-    for movie in movies[:5]: # Only check first few movies for performance
+    for movie in movies[:5]:
         if extract_movie_order_number(movie.title) != 9999:
             has_numeric_order = True
             break
-            
+
     if has_numeric_order:
-        # Agar numeric order mila (jaise Marvel Universe mein), to movies ko us number se sort karo
         movies.sort(key=lambda movie: extract_movie_order_number(movie.title))
-        
-    else:
-        # Agar numeric order nahi mila, to movies aur playlists ko created_at ke hisaab se sort karo
-        # Note: Category mein movies aur playlists dono ko sort karna padta hai, isliye thoda complex hai.
-        # Movies ko unki title ya episode number se sort karne ki zaroorat nahi hai, 
-        # kyuki Category page par Web Series ke alag-alag episodes ki jagah sirf Playlist hi dikhti hai.
-        # Lekin agar movies standalone hain, toh unko latest created_at ke hisab se sort karna theek hai.
-        pass # Created_at sorting niche ho raha hai, isliye yahan kuch nahi karenge.
 
-
-    # Items ko combine karke final sorting (created_at par default)
     items = [{"type": "movie", "obj": m} for m in movies] + [{"type": "playlist", "obj": p} for p in playlists]
-    
-    # Agar numeric order sorting use hui hai, to items list ka order already set ho chuka hai.
+
     if not has_numeric_order:
-        # Agar numeric order use nahi hua hai, to created_at ke hisab se sort karo
         items.sort(
             key=lambda x: x["obj"].created_at or timezone.datetime.min.replace(tzinfo=timezone.utc),
             reverse=True
         )
+
+    # --- 👇 FIXED Pagination Logic Yahan se Shuru Hota Hai! 👇 ---
     
-    # ------------------ NAYA SORTING LOGIC YAHAN KHATAM HOTA HAI ------------------
+    page_number = request.GET.get('page')
+
+    # 1. Base Paginator Hamesha Page 1 ke Size (24) par set karo
+    paginator = Paginator(items, 24) 
     
+    # 2. Requested page ka data fetch karo
+    try:
+        page_obj = paginator.get_page(page_number)
+    except EmptyPage:
+        page_obj = paginator.get_page(paginator.num_pages)
+    except:
+        page_obj = paginator.get_page(1)
+        
+
+    # 3. Agar page 2 ya usse aage hain, toh Page 1 ke 'extra' 4 items ko hata do.
+    # Logic: Page 1 = 24 items. Page 2, 3... = 20 items.
+    
+    if page_obj.number > 1 and len(page_obj.object_list) > 4:
+        # Paginator ne 24 items diye, hamein pehle ke 4 items hataane hain
+        media_items_sliced = page_obj.object_list[4:]
+    elif page_obj.number == 1 or page_obj.number == paginator.num_pages:
+        # First page ya last page par poore items dikhao (24 ya bache hue)
+        media_items_sliced = page_obj.object_list
+    else:
+        # Default fallback
+        media_items_sliced = page_obj.object_list
+        
+    # --- 👆 FIXED Pagination Logic Yahan Khatam Hota Hai! 👆 ---
+
     return render(request, "category_detail.html", {
         "category": category,
-        "items": items,
+        # Updated: 'items' ab sliced list hai
+        "items": media_items_sliced, 
         "query": query,
+        "page_obj": page_obj, # Pagination buttons is original page_obj ka use karenge
     })
 
 

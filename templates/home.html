@@ -62,7 +62,6 @@
 
 <div class="container mt-4">
 
-    <!-- 🔍 Search bar -->
     <form method="get" action="{% url 'home' %}" class="mb-4">
         <div class="input-group">
             <input type="text" name="q" class="form-control" placeholder="Search movies & playlists..." value="{{ query|default:'' }}">
@@ -86,7 +85,6 @@
         </div>
     {% endif %}
 
-    <!-- 🎞 Media items grid -->
     <div class="row mt-4 gx-3">
         {% for item in media_items %}
             <div class="col-6 col-sm-4 col-md-3 mb-3">
@@ -121,5 +119,48 @@
         {% endfor %}
     </div>
 
-</div>
+    {% if page_obj.has_other_pages %}
+    <nav aria-label="Page navigation" class="mt-4 mb-4">
+        <ul class="pagination justify-content-center">
+            
+            {% comment %} Previous Page Button {% endcomment %}
+            {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if query %}&q={{ query }}{% endif %}" aria-label="Previous">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>
+            {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link">&laquo;</span>
+                </li>
+            {% endif %}
+
+            {% comment %} Page Numbers Loop {% endcomment %}
+            {# Page numbers ko beech mein dikhao (current page ke agal-bagal 2-2 pages) #}
+            {% for i in page_obj.paginator.page_range %}
+                {% if page_obj.number == i %}
+                    <li class="page-item active" aria-current="page"><span class="page-link">{{ i }}</span></li>
+                {% elif i > page_obj.number|add:'-3' and i < page_obj.number|add:'3' %}
+                    <li class="page-item"><a class="page-link" href="?page={{ i }}{% if query %}&q={{ query }}{% endif %}">{{ i }}</a></li>
+                {% endif %}
+            {% endfor %}
+
+            {% comment %} Next Page Button {% endcomment %}
+            {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if query %}&q={{ query }}{% endif %}" aria-label="Next">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+            {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link">&raquo;</span>
+                </li>
+            {% endif %}
+
+        </ul>
+    </nav>
+    {% endif %}
+    </div>
 {% endblock %}

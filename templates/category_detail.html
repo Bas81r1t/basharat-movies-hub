@@ -42,7 +42,6 @@
 </style>
 
 <div class="container mt-4">
-    <!-- 🔍 Category Search Bar -->
     <form method="get" action="">
         <div class="input-group mb-4">
             <input type="text" name="q" class="form-control" placeholder="Search movies in {{ category.name }}..." value="{{ request.GET.q }}">
@@ -50,12 +49,12 @@
         </div>
     </form>
 
-    <!-- Category Title -->
     <h1 class="mb-4">{{ category.name }}</h1>
 
     <div class="row mt-4 gx-3">
-        {% if items %}
-            {% for item in items %}
+        {% if page_obj %}
+            {# Note: views.py se 'items' ab 'page_obj' mein hai, isliye hum page_obj par iterate kar rahe hain #}
+            {% for item in page_obj %} 
             <div class="col-6 col-sm-4 col-md-3 mb-3">
                 <div class="card movie-card h-100">
 
@@ -90,7 +89,6 @@
             </div>
             {% endfor %}
         {% else %}
-            <!-- ❌ Agar koi movie ya playlist nahi mile -->
             <div class="col-12">
                 <div class="alert alert-warning text-center" role="alert">
                     😢 Sorry! Koi movie nahi mili.
@@ -98,5 +96,49 @@
             </div>
         {% endif %}
     </div>
-</div>
+    
+    {% if page_obj.has_other_pages %}
+    <nav aria-label="Page navigation" class="mt-4 mb-4">
+        <ul class="pagination justify-content-center">
+            
+            {% comment %} Previous Page Button {% endcomment %}
+            {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}" aria-label="Previous">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>
+            {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link">&laquo;</span>
+                </li>
+            {% endif %}
+
+            {% comment %} Page Numbers Loop {% endcomment %}
+            {# URL mein Search Query (q) ko bhi saath mein bhej rahe hain #}
+            {% for i in page_obj.paginator.page_range %}
+                {% if page_obj.number == i %}
+                    <li class="page-item active" aria-current="page"><span class="page-link">{{ i }}</span></li>
+                {% elif i > page_obj.number|add:'-3' and i < page_obj.number|add:'3' %}
+                    <li class="page-item"><a class="page-link" href="?page={{ i }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">{{ i }}</a></li>
+                {% endif %}
+            {% endfor %}
+
+            {% comment %} Next Page Button {% endcomment %}
+            {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}" aria-label="Next">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+            {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link">&raquo;</span>
+                </li>
+            {% endif %}
+
+        </ul>
+    </nav>
+    {% endif %}
+    </div>
 {% endblock %}

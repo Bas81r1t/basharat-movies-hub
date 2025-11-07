@@ -187,3 +187,53 @@ body {
     text-decoration: none;
     border-color: #6c757d;
 }
+/* Navbar default */
+.navbar {
+    transition: all 0.3s ease;
+    box-shadow: none;
+    background-color: rgba(34,34,34,0.95);
+}
+
+/* Navbar when scrolled */
+.navbar.navbar-scrolled {
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    background-color: rgba(34,34,34,1);
+}
+
+/* Scroll section animations */
+.scroll-section {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: all 0.8s ease-out;
+}
+.scroll-section.active {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Footer link hover */
+footer a {
+    color: #4da6ff;
+    transition: color 0.3s ease;
+}
+footer a:hover {
+    color: #1a73e8;
+}
+
+/* Install Button */
+#install-btn {
+    display: none;
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1000;
+    padding: 10px 20px;
+    background-color: #4da6ff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+#install-btn:hover {
+    background-color: #1a73e8;
+}
